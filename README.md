@@ -175,19 +175,24 @@ body.locked {
     background-repeat: no-repeat;
 }
 
-/* FEEDBACK VISUEL DU CODE */
+/* FEEDBACK VISUEL DU CODE - CACHÉ PAR DÉFAUT */
 #codeDisplay {
     position: absolute;
     top: 48%;
     left: 50%;
     transform: translateX(-50%);
-    display: none;
+    display: none !important;
     gap: 12px;
     z-index: 10;
 }
 
-#codeDisplay.active {
-    display: flex;
+/* Option pour afficher les points si besoin */
+body.show-dots #codeDisplay {
+    display: flex !important;
+}
+
+body.show-dots #codeDisplay.active {
+    display: flex !important;
 }
 
 .dot {
@@ -301,7 +306,7 @@ body.calibration #codeDisplay {
     <button id="startBtn">🚀 Démarrer</button>
     
     <div class="info-box">
-        💡 <strong>Astuce :</strong> Une fois lancé, fais un appui long (2 sec) sur l'écran pour afficher les zones tactiles et ajuster leur position si nécessaire.
+        💡 <strong>Astuce :</strong> Une fois lancé, clique sur ⚙️ en haut à gauche pour accéder aux options (calibration des zones tactiles, affichage des points, etc.)
     </div>
 </div>
 
@@ -331,6 +336,64 @@ body.calibration #codeDisplay {
 
         <div id="unlocked">
             <div id="secret"></div>
+        </div>
+    </div>
+    
+    <!-- Bouton settings -->
+    <button id="settingsBtn">⚙️</button>
+    <div id="settingsMenu">
+        <div class="menu-option" onclick="toggleCalibrationMode()">🎯 Mode calibration</div>
+        <div class="menu-option" onclick="openDotsControl()">🎚️ Ajuster les points</div>
+        <div class="menu-option" onclick="resetApp()">🔄 Recommencer</div>
+    </div>
+    
+    <!-- Panel de contrôle des points -->
+    <div id="dotsControl">
+        <h3 style="margin: 0 0 15px 0; font-size: 14px;">🎯 Ajuster les points</h3>
+        
+        <div class="control-group">
+            <label>Position verticale</label>
+            <input type="range" id="dotsTop" min="30" max="60" value="48" step="0.5">
+            <div class="control-values">
+                <span>Haut</span>
+                <span id="dotsTopValue">48%</span>
+                <span>Bas</span>
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <label>Position horizontale</label>
+            <input type="range" id="dotsLeft" min="40" max="60" value="50" step="0.5">
+            <div class="control-values">
+                <span>Gauche</span>
+                <span id="dotsLeftValue">50%</span>
+                <span>Droite</span>
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <label>Espacement entre les points</label>
+            <input type="range" id="dotsGap" min="6" max="20" value="12" step="1">
+            <div class="control-values">
+                <span>Serré</span>
+                <span id="dotsGapValue">12px</span>
+                <span>Large</span>
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <label>Taille des points</label>
+            <input type="range" id="dotsSize" min="8" max="20" value="14" step="1">
+            <div class="control-values">
+                <span>Petit</span>
+                <span id="dotsSizeValue">14px</span>
+                <span>Grand</span>
+            </div>
+        </div>
+        
+        <div class="control-buttons">
+            <button class="btn-close" onclick="closeDotsControl()">Fermer</button>
+            <button class="btn-apply" onclick="applyDotsSettings()">✓ Valider</button>
         </div>
     </div>
 </div>
@@ -400,31 +463,91 @@ startBtn.addEventListener('click', function() {
     document.body.classList.add('locked');
 });
 
-// MODE CALIBRATION
+// MODE CALIBRATION - Désactivé par défaut
 let calibrationMode = false;
-let longPressTimer;
+let showDotsMode = false;
 
-phone.addEventListener('touchstart', (e) => {
-    if (isUnlocked) return;
-    longPressTimer = setTimeout(() => {
-        calibrationMode = true;
+// Suppression de l'appui long automatique
+// Plus de déclenchement accidentel !
+
+function toggleCalibrationMode() {
+    calibrationMode = !calibrationMode;
+    if (calibrationMode) {
         document.body.classList.add('calibration');
-        navigator.vibrate && navigator.vibrate(50);
-    }, 2000);
-});
+        document.getElementById('settingsMenu').classList.remove('visible');
+    } else {
+        document.body.classList.remove('calibration');
+    }
+}
 
-phone.addEventListener('touchend', () => {
-    clearTimeout(longPressTimer);
-});
+function openDotsControl() {
+    document.body.classList.add('show-dots');
+    document.getElementById('dotsControl').classList.add('visible');
+    document.getElementById('settingsMenu').classList.remove('visible');
+    showDotsMode = true;
+}
 
-phone.addEventListener('touchmove', () => {
-    clearTimeout(longPressTimer);
-});
+function closeDotsControl() {
+    document.getElementById('dotsControl').classList.remove('visible');
+}
+
+function applyDotsSettings() {
+    document.body.classList.remove('show-dots');
+    document.getElementById('dotsControl').classList.remove('visible');
+    showDotsMode = false;
+}
+
+function resetApp() {
+    location.reload();
+}
 
 function toggleCalibration() {
     calibrationMode = false;
     document.body.classList.remove('calibration');
 }
+
+// Menu settings
+document.getElementById('settingsBtn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const menu = document.getElementById('settingsMenu');
+    menu.classList.toggle('visible');
+});
+
+// Fermer le menu si on clique ailleurs
+document.addEventListener('click', () => {
+    document.getElementById('settingsMenu').classList.remove('visible');
+});
+
+// Contrôle des sliders en temps réel
+const dotsDisplay = document.getElementById('codeDisplay');
+
+document.getElementById('dotsTop').addEventListener('input', function() {
+    const value = this.value;
+    dotsDisplay.style.top = value + '%';
+    document.getElementById('dotsTopValue').textContent = value + '%';
+});
+
+document.getElementById('dotsLeft').addEventListener('input', function() {
+    const value = this.value;
+    dotsDisplay.style.left = value + '%';
+    document.getElementById('dotsLeftValue').textContent = value + '%';
+});
+
+document.getElementById('dotsGap').addEventListener('input', function() {
+    const value = this.value;
+    dotsDisplay.style.gap = value + 'px';
+    document.getElementById('dotsGapValue').textContent = value + 'px';
+});
+
+document.getElementById('dotsSize').addEventListener('input', function() {
+    const value = this.value;
+    const dots = document.querySelectorAll('.dot');
+    dots.forEach(dot => {
+        dot.style.width = value + 'px';
+        dot.style.height = value + 'px';
+    });
+    document.getElementById('dotsSizeValue').textContent = value + 'px';
+});
 
 // MISE À JOUR VISUELLE
 function updateDots() {
