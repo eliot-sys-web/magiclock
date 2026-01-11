@@ -270,7 +270,7 @@ body.calibration .touch {
 #calibInfo {
     display: none;
     position: fixed;
-    bottom: 20px;
+    bottom: 80px;
     left: 50%;
     transform: translateX(-50%);
     background: rgba(0,0,0,0.95);
@@ -286,6 +286,45 @@ body.calibration .touch {
 
 body.calibration #calibInfo {
     display: block;
+}
+
+/* Boutons de sauvegarde en mode calibration */
+#calibButtons {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100003;
+    gap: 10px;
+}
+
+body.calibration #calibButtons {
+    display: flex;
+}
+
+#calibButtons button {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+#saveCalib {
+    background: #4CAF50;
+    color: white;
+}
+
+#cancelCalib {
+    background: rgba(255,255,255,0.2);
+    color: white;
+}
+
+#exportCalib {
+    background: #2196F3;
+    color: white;
 }
 
 /* Instruction d'appui long */
@@ -385,9 +424,15 @@ body.calibration #calibInfo {
 </div>
 
 <div id="calibInfo">
-    📍 Zones tactiles visibles<br>
-    Ajuste les positions dans le code si nécessaire<br>
-    <strong>Appui long à nouveau pour masquer</strong>
+    🎯 <strong>Mode déplacement activé</strong><br>
+    Glisse les zones rouges pour les positionner<br>
+    Clique sur "Sauvegarder" quand c'est OK
+</div>
+
+<div id="calibButtons">
+    <button id="cancelCalib" onclick="cancelCalibration()">Annuler</button>
+    <button id="exportCalib" onclick="exportPositions()">📋 Copier</button>
+    <button id="saveCalib" onclick="saveCalibration()">✓ Sauvegarder</button>
 </div>
 
 <div id="longPressHint">
@@ -414,6 +459,11 @@ let isUnlocked = false;
 let calibrationMode = false;
 let longPressTimer = null;
 let settingsVisible = false;
+
+// Pour le glisser-déposer des zones
+let draggedElement = null;
+let originalPositions = {};
+let isDragging = false;
 
 const phone = document.getElementById('phone');
 const setup = document.getElementById('setup');
@@ -497,10 +547,16 @@ startBtn.addEventListener('click', function() {
 });
 
 // APPUI LONG pour afficher les réglages - Sur TOUT le container
+// Fonctionne sur tactile ET souris
 let longPressStartTime = 0;
 
-container.addEventListener('touchstart', function(e) {
+function handleLongPressStart(e) {
     if (isUnlocked) return;
+    
+    // Ne pas déclencher l'appui long si on est sur une zone en mode calibration
+    if (calibrationMode && e.target.classList.contains('touch')) {
+        return;
+    }
     
     longPressStartTime = Date.now();
     
@@ -519,27 +575,41 @@ container.addEventListener('touchstart', function(e) {
             calibrationMode = !calibrationMode;
             if (calibrationMode) {
                 document.body.classList.add('calibration');
+                // Sauvegarder les positions originales
+                document.querySelectorAll('.touch').forEach(zone => {
+                    originalPositions[zone.dataset.digit] = {
+                        left: zone.style.left,
+                        top: zone.style.top
+                    };
+                });
             } else {
                 document.body.classList.remove('calibration');
             }
         }
     }, 1500); // 1.5 secondes
-});
+}
 
-container.addEventListener('touchend', function(e) {
+function handleLongPressEnd(e) {
     const pressDuration = Date.now() - longPressStartTime;
     clearTimeout(longPressTimer);
-    
-    // Si c'était un appui court et qu'on n'est pas en mode calibration, 
-    // propager aux zones tactiles
-    if (pressDuration < 1500 && !calibrationMode) {
-        // Laisser l'événement se propager normalement
-    }
-});
+}
 
-container.addEventListener('touchmove', function(e) {
-    clearTimeout(longPressTimer);
-});
+function handleLongPressCancel(e) {
+    // Ne pas annuler si on drag une zone
+    if (!isDragging) {
+        clearTimeout(longPressTimer);
+    }
+}
+
+// Tactile
+container.addEventListener('touchstart', handleLongPressStart);
+container.addEventListener('touchend', handleLongPressEnd);
+container.addEventListener('touchmove', handleLongPressCancel);
+
+// Souris (pour tester sur ordinateur)
+container.addEventListener('mousedown', handleLongPressStart);
+container.addEventListener('mouseup', handleLongPressEnd);
+container.addEventListener('mousemove', handleLongPressCancel);
 
 // MENU SETTINGS
 settingsBtn.addEventListener('click', function(e) {
@@ -556,10 +626,70 @@ function toggleCalibrationMode() {
     calibrationMode = !calibrationMode;
     if (calibrationMode) {
         document.body.classList.add('calibration');
+        // Sauvegarder les positions originales
+        document.querySelectorAll('.touch').forEach(zone => {
+            originalPositions[zone.dataset.digit] = {
+                left: zone.style.left,
+                top: zone.style.top
+            };
+        });
     } else {
         document.body.classList.remove('calibration');
     }
     document.getElementById('settingsMenu').classList.remove('visible');
+}
+
+function saveCalibration() {
+    // Sauvegarder les positions dans localStorage
+    const positions = {};
+    document.querySelectorAll('.touch').forEach(zone => {
+        positions[zone.dataset.digit] = {
+            left: zone.style.left,
+            top: zone.style.top,
+            width: zone.style.width,
+            height: zone.style.height
+        };
+    });
+    localStorage.setItem('zone_positions', JSON.stringify(positions));
+    
+    calibrationMode = false;
+    document.body.classList.remove('calibration');
+    
+    alert('✓ Positions sauvegardées !');
+}
+
+function cancelCalibration() {
+    // Restaurer les positions originales
+    document.querySelectorAll('.touch').forEach(zone => {
+        if (originalPositions[zone.dataset.digit]) {
+            zone.style.left = originalPositions[zone.dataset.digit].left;
+            zone.style.top = originalPositions[zone.dataset.digit].top;
+        }
+    });
+    
+    calibrationMode = false;
+    document.body.classList.remove('calibration');
+}
+
+function exportPositions() {
+    const positions = {};
+    document.querySelectorAll('.touch').forEach(zone => {
+        positions[zone.dataset.digit] = {
+            left: zone.style.left,
+            top: zone.style.top
+        };
+    });
+    
+    const text = JSON.stringify(positions, null, 2);
+    
+    // Copier dans le presse-papier
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+            alert('📋 Positions copiées dans le presse-papier !');
+        });
+    } else {
+        alert('Positions:\n' + text);
+    }
 }
 
 function changeImages() {
@@ -640,24 +770,138 @@ function handleDigit(digit) {
     }
 }
 
-// ZONES TACTILES - Ne se déclenchent que si appui court
+// ZONES TACTILES - Glisser-déposer en mode calibration
 document.querySelectorAll(".touch").forEach(zone => {
     let touchStartTime = 0;
+    let startX, startY, offsetX, offsetY;
     
+    // Fonction de démarrage du drag
+    function startDrag(e, clientX, clientY) {
+        if (!calibrationMode) {
+            touchStartTime = Date.now();
+            return;
+        }
+        
+        isDragging = true;
+        draggedElement = zone;
+        zone.classList.add('dragging');
+        
+        const rect = zone.getBoundingClientRect();
+        const containerRect = phone.getBoundingClientRect();
+        
+        const offsetX = clientX - rect.left;
+        const offsetY = clientY - rect.top;
+        
+        // Stocker les offsets sur l'élément
+        zone._offsetX = offsetX;
+        zone._offsetY = offsetY;
+        
+        e.preventDefault();
+    }
+    
+    // Fonction de déplacement
+    function doDrag(e, clientX, clientY) {
+        if (!isDragging || !calibrationMode) return;
+        
+        const containerRect = phone.getBoundingClientRect();
+        
+        let newLeft = ((clientX - containerRect.left - offsetX) / containerRect.width) * 100;
+        let newTop = ((clientY - containerRect.top - offsetY) / containerRect.height) * 100;
+        
+        // Limiter aux bords
+        newLeft = Math.max(0, Math.min(newLeft, 100 - parseFloat(zone.style.width)));
+        newTop = Math.max(0, Math.min(newTop, 100 - parseFloat(zone.style.height)));
+        
+        zone.style.left = newLeft + '%';
+        zone.style.top = newTop + '%';
+        
+        e.preventDefault();
+    }
+    
+    // Fonction de fin du drag
+    function endDrag(e) {
+        if (isDragging) {
+            isDragging = false;
+            zone.classList.remove('dragging');
+            draggedElement = null;
+        } else if (!calibrationMode) {
+            const duration = Date.now() - touchStartTime;
+            if (duration < 500) {
+                handleDigit(zone.dataset.digit);
+            }
+        }
+    }
+    
+    // Événements tactiles
     zone.addEventListener("touchstart", function(e) {
-        touchStartTime = Date.now();
+        const touch = e.touches[0];
+        startDrag(e, touch.clientX, touch.clientY);
     });
     
-    zone.addEventListener("touchend", function(e) {
-        const duration = Date.now() - touchStartTime;
-        
-        // Seulement si appui court (moins de 500ms) et pas en mode calibration
-        if (duration < 500 && !calibrationMode) {
-            e.preventDefault();
-            e.stopPropagation();
-            handleDigit(zone.dataset.digit);
+    zone.addEventListener("touchmove", function(e) {
+        const touch = e.touches[0];
+        doDrag(e, touch.clientX, touch.clientY);
+    });
+    
+    zone.addEventListener("touchend", endDrag);
+    
+    // Événements souris
+    zone.addEventListener("mousedown", function(e) {
+        startDrag(e, e.clientX, e.clientY);
+        e.stopPropagation(); // Empêcher la propagation au container
+    });
+    
+    zone.addEventListener("mousemove", function(e) {
+        if (draggedElement === zone) {
+            doDrag(e, e.clientX, e.clientY);
         }
     });
+    
+    zone.addEventListener("mouseup", function(e) {
+        if (draggedElement === zone) {
+            endDrag(e);
+            e.stopPropagation();
+        }
+    });
+});
+
+// Charger les positions sauvegardées au démarrage
+const savedPositions = localStorage.getItem('zone_positions');
+if (savedPositions) {
+    const positions = JSON.parse(savedPositions);
+    document.querySelectorAll('.touch').forEach(zone => {
+        const digit = zone.dataset.digit;
+        if (positions[digit]) {
+            zone.style.left = positions[digit].left;
+            zone.style.top = positions[digit].top;
+        }
+    });
+}
+
+// Ajouter les événements globaux pour le mousemove et mouseup
+document.addEventListener("mousemove", function(e) {
+    if (draggedElement && calibrationMode) {
+        const containerRect = phone.getBoundingClientRect();
+        
+        let newLeft = ((e.clientX - containerRect.left - draggedElement._offsetX) / containerRect.width) * 100;
+        let newTop = ((e.clientY - containerRect.top - draggedElement._offsetY) / containerRect.height) * 100;
+        
+        newLeft = Math.max(0, Math.min(newLeft, 100 - parseFloat(draggedElement.style.width)));
+        newTop = Math.max(0, Math.min(newTop, 100 - parseFloat(draggedElement.style.height)));
+        
+        draggedElement.style.left = newLeft + '%';
+        draggedElement.style.top = newTop + '%';
+        
+        e.preventDefault();
+    }
+});
+
+document.addEventListener("mouseup", function(e) {
+    if (draggedElement && calibrationMode) {
+        draggedElement.classList.remove('dragging');
+        draggedElement = null;
+        isDragging = false;
+    }
 });
 
 // Empêcher les comportements par défaut
