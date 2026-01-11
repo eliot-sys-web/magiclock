@@ -30,7 +30,7 @@ html, body {
     position: relative;
 
     /* IMAGE EN FOND : PLEIN ÉCRAN, ENTIER VISIBLE */
-    background-image: url("lockscreen.png");
+    background-image: url("IMG_3630.png");
     background-size: contain;       /* aucune partie coupée */
     background-position: center;
     background-repeat: no-repeat;
