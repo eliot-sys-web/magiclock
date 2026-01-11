@@ -12,24 +12,28 @@ html, body {
     padding: 0;
     width: 100%;
     height: 100%;
-    overflow: hidden;
-    touch-action: none;
     background: black;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body.locked {
+    overflow: hidden;
+    touch-action: none;
 }
 
 /* ÉCRAN DE CONFIGURATION */
 #setup {
     width: 100%;
-    height: 100%;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 20px;
+    justify-content: flex-start;
+    padding: 40px 20px;
     box-sizing: border-box;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
+    overflow-y: auto;
 }
 
 #setup h1 {
@@ -350,6 +354,7 @@ startBtn.addEventListener('click', function() {
     document.getElementById('unlocked').style.backgroundImage = `url(${homescreenData})`;
     setup.style.display = 'none';
     container.classList.add('visible');
+    document.body.classList.add('locked');
 });
 
 // MODE CALIBRATION
