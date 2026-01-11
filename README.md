@@ -120,7 +120,7 @@ body {
 
     <!-- ÉCRAN DÉVERROUILLÉ -->
     <div id="unlocked">
-        <img src="photo.jpg" alt="Écran déverrouillé">
+        <img src="39894662-ai-genere-une-mignonne-chat-avec-gros-yeux-detient-une-cadeau-boite-avec-une-arc-dans-le-sien-pattes-gratuit-photo.jpg" alt="Écran déverrouillé">
         <div id="secret"></div>
     </div>
 
