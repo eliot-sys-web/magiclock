@@ -56,7 +56,7 @@ html, body {
 <body>
 <div id="phone">
     <!-- IMAGE DE TON ÉCRAN DE VERROUILLAGE -->
-    <img src="lockscreen.png" alt="Écran verrouillé">
+    <img src="IMG_3630.png" alt="Écran verrouillé">
 
     <!-- ZONES CLIQUABLES pour chaque chiffre sur iPhone 13 -->
     <!-- Ajusté pour clavier standard 1-9 / 0 -->
