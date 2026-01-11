@@ -76,7 +76,7 @@ html, body {
 
     <!-- ÉCRAN DÉVERROUILLÉ -->
     <div id="unlocked">
-        <img src="lockscreen.png" alt="Écran déverrouillé">
+        <img src="IMG_3629.png" alt="Écran déverrouillé">
         <div id="secret"></div>
     </div>
 </div>
