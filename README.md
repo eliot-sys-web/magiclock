@@ -1,97 +1,43 @@
-# magiclock
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+<meta charset="UTF-8">
+<title>iPhone Lock</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta charset="UTF-8">
-<title>iPhone Lock</title>
 <style>
-body {
+html, body {
     margin: 0;
-    background: black;
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-}
-#phone {
-    width: 320px;
-    height: 640px;
-    border-radius: 40px;
-    background: black;
+    padding: 0;
+    height: 100%;
+    width: 100%;
     overflow: hidden;
-    color: white;
-    position: relative;
+    touch-action: manipulation;
 }
-#lockscreen {
-    text-align: center;
-    padding-top: 60px;
-}
-#lock-icon {
-    font-size: 28px;
-    margin-bottom: 10px;
-}
-#title {
-    font-size: 18px;
-    margin-bottom: 25px;
-}
-#dots {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 30px;
-}
-.dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    border: 1px solid white;
-    margin: 6px;
-}
-.filled {
-    background: white;
-}
-#keypad {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-    padding: 0 30px;
-}
-.key {
-    border: 1px solid #666;
-    border-radius: 50%;
-    height: 65px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    font-size: 22px;
-    cursor: pointer;
-}
-.key span {
-    font-size: 10px;
-    letter-spacing: 1px;
-    opacity: 0.8;
-}
-#bottom {
-    display: flex;
-    justify-content: space-between;
-    padding: 20px 30px;
-    font-size: 14px;
-    opacity: 0.8;
-}
-#unlocked {
-    display: none;
+
+#phone {
     width: 100%;
     height: 100%;
+    max-width: 390px; /* iPhone 13 width */
+    max-height: 844px; /* iPhone 13 height */
+    margin: auto;
     position: relative;
 }
-#unlocked img {
+
+#phone img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
+
+#unlocked {
+    display: none;
+    position: absolute;
+    top:0; left:0;
+    width:100%; height:100%;
+}
+
 #secret {
     position: absolute;
     bottom: 8px;
@@ -100,37 +46,43 @@ body {
     opacity: 0.35;
     color: white;
 }
+
+.touch-area {
+    position: absolute;
+    opacity: 0;
+}
 </style>
 </head>
-
 <body>
 <div id="phone">
+    <!-- IMAGE DE TON ÉCRAN DE VERROUILLAGE -->
+    <img src="lockscreen.png" alt="Écran verrouillé">
 
-    <!-- ÉCRAN VERROUILLÉ -->
-    <div id="lockscreen">
-        <div id="lock-icon">🔒</div>
-        <div id="title">Face ID ou code</div>
+    <!-- ZONES CLIQUABLES pour chaque chiffre sur iPhone 13 -->
+    <!-- Ajusté pour clavier standard 1-9 / 0 -->
+    <div class="touch-area" data-digit="1" style="left:50px; top:520px; width:70px; height:70px;"></div>
+    <div class="touch-area" data-digit="2" style="left:160px; top:520px; width:70px; height:70px;"></div>
+    <div class="touch-area" data-digit="3" style="left:270px; top:520px; width:70px; height:70px;"></div>
 
-        <div id="dots"></div>
+    <div class="touch-area" data-digit="4" style="left:50px; top:610px; width:70px; height:70px;"></div>
+    <div class="touch-area" data-digit="5" style="left:160px; top:610px; width:70px; height:70px;"></div>
+    <div class="touch-area" data-digit="6" style="left:270px; top:610px; width:70px; height:70px;"></div>
 
-        <div id="keypad"></div>
+    <div class="touch-area" data-digit="7" style="left:50px; top:700px; width:70px; height:70px;"></div>
+    <div class="touch-area" data-digit="8" style="left:160px; top:700px; width:70px; height:70px;"></div>
+    <div class="touch-area" data-digit="9" style="left:270px; top:700px; width:70px; height:70px;"></div>
 
-        <div id="bottom">
-            <div>Urgences</div>
-            <div>Annuler</div>
-        </div>
-    </div>
+    <div class="touch-area" data-digit="0" style="left:160px; top:790px; width:70px; height:70px;"></div>
 
     <!-- ÉCRAN DÉVERROUILLÉ -->
     <div id="unlocked">
-        <img src="39894662-ai-genere-une-mignonne-chat-avec-gros-yeux-detient-une-cadeau-boite-avec-une-arc-dans-le-sien-pattes-gratuit-photo.jpg" alt="Écran déverrouillé">
+        <img src="lockscreen.png" alt="Écran déverrouillé">
         <div id="secret"></div>
     </div>
-
 </div>
 
 <script>
-// 🔑 Codes valides + célébrités
+// Codes valides + célébrités
 const VALID_CODES = {
     "123456": "Brad Pitt",
     "654321": "Emma Watson",
@@ -140,34 +92,19 @@ const VALID_CODES = {
 let input = "";
 let firstWrongCode = null;
 
-const dots = document.getElementById("dots");
-const keypad = document.getElementById("keypad");
-
-function updateDots() {
-    dots.innerHTML = "";
-    for (let i = 0; i < 6; i++) {
-        const d = document.createElement("div");
-        d.className = "dot" + (i < input.length ? " filled" : "");
-        dots.appendChild(d);
-    }
-}
-
-function resetInput() {
-    input = "";
-    updateDots();
-}
-
 function unlock(celebrity) {
-    document.getElementById("lockscreen").style.display = "none";
     document.getElementById("unlocked").style.display = "block";
     document.getElementById("secret").innerText =
         `${celebrity} • ${firstWrongCode}`;
 }
 
+function resetInput() {
+    input = "";
+}
+
 function handleDigit(d) {
     if (input.length >= 6) return;
     input += d;
-    updateDots();
 
     if (input.length === 6) {
         setTimeout(() => {
@@ -183,28 +120,10 @@ function handleDigit(d) {
     }
 }
 
-// Création du clavier façon iPhone
-const layout = [
-    ["1",""],["2","ABC"],["3","DEF"],
-    ["4","GHI"],["5","JKL"],["6","MNO"],
-    ["7","PQRS"],["8","TUV"],["9","WXYZ"],
-    ["",""],["0",""],["",""]
-];
-
-layout.forEach(k => {
-    const key = document.createElement("div");
-    key.className = "key";
-    if (k[0]) {
-        key.innerHTML = k[0] + (k[1] ? `<span>${k[1]}</span>` : "");
-        key.onclick = () => handleDigit(k[0]);
-    } else {
-        key.style.border = "none";
-    }
-    keypad.appendChild(key);
+// Associer les zones cliquables
+document.querySelectorAll(".touch-area").forEach(el => {
+    el.addEventListener("click", () => handleDigit(el.dataset.digit));
 });
-
-updateDots();
 </script>
-
 </body>
 </html>
