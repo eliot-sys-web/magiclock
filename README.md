@@ -2,11 +2,22 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>iPhone Lock</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>iPhone</title>
+<!-- PWA Configuration -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="iPhone">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiaVBob25lIiwic2hvcnRfbmFtZSI6ImlQaG9uZSIsImRpc3BsYXkiOiJmdWxsc2NyZWVuIiwib3JpZW50YXRpb24iOiJwb3J0cmFpdCJ9">
 <style>
+* {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
 html, body {
     margin: 0;
     padding: 0;
@@ -14,6 +25,8 @@ html, body {
     height: 100%;
     background: black;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    position: fixed;
+    overscroll-behavior: none;
 }
 
 body.locked {
@@ -34,6 +47,7 @@ body.locked {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 #setup h1 {
@@ -48,6 +62,7 @@ body.locked {
     margin-bottom: 30px;
     text-align: center;
     max-width: 320px;
+    line-height: 1.5;
 }
 
 .upload-section {
@@ -110,6 +125,7 @@ body.locked {
     font-weight: 600;
     cursor: pointer;
     margin-top: 20px;
+    margin-bottom: 40px;
     display: none;
     transition: transform 0.2s;
 }
@@ -122,33 +138,47 @@ body.locked {
     display: block;
 }
 
+.info-box {
+    background: rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 15px;
+    margin-top: 20px;
+    max-width: 340px;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
 /* CONTENEUR PRINCIPAL */
 #container {
-    width: 100%;
-    height: 100%;
-    position: relative;
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
     display: none;
-    align-items: center;
-    justify-content: center;
+    overflow: hidden;
 }
 
 #container.visible {
-    display: flex;
+    display: block;
 }
 
 #phone {
-    width: 100vw;
-    height: 100vh;
-    position: relative;
-    background-size: cover;
-    background-position: center;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    /* ALIGNEMENT PIXEL-PERFECT */
+    background-size: 100% 100%;
+    background-position: center center;
     background-repeat: no-repeat;
 }
 
 /* FEEDBACK VISUEL DU CODE */
 #codeDisplay {
     position: absolute;
-    top: 400px;
+    top: 48%;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
@@ -175,8 +205,8 @@ body.locked {
     display: none;
     position: absolute;
     inset: 0;
-    background-size: cover;
-    background-position: center;
+    background-size: 100% 100%;
+    background-position: center center;
     background-repeat: no-repeat;
     z-index: 100;
 }
@@ -209,10 +239,14 @@ body.calibration #calibBtn {
     display: block;
 }
 
+body.calibration #codeDisplay {
+    display: none;
+}
+
 #calibBtn {
     display: none;
     position: fixed;
-    top: 10px;
+    top: env(safe-area-inset-top, 10px);
     right: 10px;
     padding: 10px 20px;
     background: rgba(0,0,0,0.8);
@@ -261,6 +295,10 @@ body.calibration #calibBtn {
     </div>
     
     <button id="startBtn">🚀 Démarrer</button>
+    
+    <div class="info-box">
+        💡 <strong>Astuce :</strong> Une fois lancé, fais un appui long (2 sec) sur l'écran pour afficher les zones tactiles et ajuster leur position si nécessaire.
+    </div>
 </div>
 
 <!-- ÉCRAN PRINCIPAL -->
@@ -275,16 +313,17 @@ body.calibration #calibBtn {
             <div class="dot"></div>
         </div>
 
-        <div class="touch" data-digit="1" style="left:55px;  top:530px; width:70px; height:70px;"></div>
-        <div class="touch" data-digit="2" style="left:160px; top:530px; width:70px; height:70px;"></div>
-        <div class="touch" data-digit="3" style="left:265px; top:530px; width:70px; height:70px;"></div>
-        <div class="touch" data-digit="4" style="left:55px;  top:615px; width:70px; height:70px;"></div>
-        <div class="touch" data-digit="5" style="left:160px; top:615px; width:70px; height:70px;"></div>
-        <div class="touch" data-digit="6" style="left:265px; top:615px; width:70px; height:70px;"></div>
-        <div class="touch" data-digit="7" style="left:55px;  top:700px; width:70px; height:70px;"></div>
-        <div class="touch" data-digit="8" style="left:160px; top:700px; width:70px; height:70px;"></div>
-        <div class="touch" data-digit="9" style="left:265px; top:700px; width:70px; height:70px;"></div>
-        <div class="touch" data-digit="0" style="left:160px; top:785px; width:70px; height:70px;"></div>
+        <!-- Zones tactiles ajustées pour iPhone 13 -->
+        <div class="touch" data-digit="1" style="left:13%;  top:63%; width:18%; height:8.5%;"></div>
+        <div class="touch" data-digit="2" style="left:41%;  top:63%; width:18%; height:8.5%;"></div>
+        <div class="touch" data-digit="3" style="left:69%;  top:63%; width:18%; height:8.5%;"></div>
+        <div class="touch" data-digit="4" style="left:13%;  top:72.5%; width:18%; height:8.5%;"></div>
+        <div class="touch" data-digit="5" style="left:41%;  top:72.5%; width:18%; height:8.5%;"></div>
+        <div class="touch" data-digit="6" style="left:69%;  top:72.5%; width:18%; height:8.5%;"></div>
+        <div class="touch" data-digit="7" style="left:13%;  top:82%; width:18%; height:8.5%;"></div>
+        <div class="touch" data-digit="8" style="left:41%;  top:82%; width:18%; height:8.5%;"></div>
+        <div class="touch" data-digit="9" style="left:69%;  top:82%; width:18%; height:8.5%;"></div>
+        <div class="touch" data-digit="0" style="left:41%;  top:91.5%; width:18%; height:8.5%;"></div>
 
         <div id="unlocked">
             <div id="secret"></div>
@@ -292,7 +331,7 @@ body.calibration #calibBtn {
     </div>
 </div>
 
-<button id="calibBtn" onclick="toggleCalibration()">Terminer calibration</button>
+<button id="calibBtn" onclick="toggleCalibration()">✓ Terminer calibration</button>
 
 <script>
 // 🔐 CODES VALIDES
@@ -452,13 +491,21 @@ document.querySelectorAll(".touch").forEach(zone => {
     
     zone.addEventListener("touchend", (e) => {
         e.preventDefault();
+        e.stopPropagation();
         handleDigit(zone.dataset.digit);
     });
 });
 
+// Empêcher les comportements par défaut
 document.addEventListener('gesturestart', (e) => {
     e.preventDefault();
 });
+
+document.addEventListener('touchmove', (e) => {
+    if (document.body.classList.contains('locked')) {
+        e.preventDefault();
+    }
+}, { passive: false });
 </script>
 </body>
 </html>
