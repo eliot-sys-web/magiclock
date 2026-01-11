@@ -3,19 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <title>iPhone</title>
-<!-- PWA Configuration -->
+<!-- PWA CONFIGURATION COMPLÈTE -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="iPhone">
+<meta name="apple-mobile-web-app-title" content="">
 <meta name="mobile-web-app-capable" content="yes">
-<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiaVBob25lIiwic2hvcnRfbmFtZSI6ImlQaG9uZSIsImRpc3BsYXkiOiJmdWxsc2NyZWVuIiwib3JpZW50YXRpb24iOiJwb3J0cmFpdCJ9">
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==">
 <style>
 * {
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     user-select: none;
+    box-sizing: border-box;
 }
 
 html, body {
@@ -31,7 +32,7 @@ body.locked {
     touch-action: none;
     position: fixed;
     height: 100%;
-    overscroll-behavior: none;
+    width: 100%;
 }
 
 /* ÉCRAN DE CONFIGURATION */
@@ -43,7 +44,6 @@ body.locked {
     align-items: center;
     justify-content: flex-start;
     padding: 40px 20px;
-    box-sizing: border-box;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     overflow-y: auto;
@@ -169,44 +169,16 @@ body.locked {
     position: absolute;
     top: 0;
     left: 0;
-    /* ALIGNEMENT PIXEL-PERFECT */
     background-size: 100% 100%;
     background-position: center center;
     background-repeat: no-repeat;
 }
 
-/* FEEDBACK VISUEL DU CODE - CACHÉ PAR DÉFAUT */
-#codeDisplay {
+/* ZONES TACTILES - INVISIBLES MAIS CLIQUABLES */
+.touch {
     position: absolute;
-    top: 48%;
-    left: 50%;
-    transform: translateX(-50%);
-    display: none !important;
-    gap: 12px;
     z-index: 10;
-}
-
-/* Option pour afficher les points si besoin */
-body.show-dots #codeDisplay {
-    display: flex !important;
-}
-
-body.show-dots #codeDisplay.active {
-    display: flex !important;
-}
-
-.dot {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0.6);
-    background: transparent;
-    transition: all 0.2s;
-}
-
-.dot.filled {
-    background: white;
-    border-color: white;
+    cursor: pointer;
 }
 
 /* ÉCRAN DÉVERROUILLÉ */
@@ -231,49 +203,122 @@ body.show-dots #codeDisplay.active {
     line-height: 1.3;
 }
 
-/* ZONES TACTILES */
-.touch {
-    position: absolute;
+/* BOUTON SETTINGS - Caché par défaut */
+#settingsBtn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 50px;
+    height: 50px;
+    background: rgba(0,0,0,0.8);
+    color: white;
+    border: 2px solid rgba(255,255,255,0.5);
     border-radius: 50%;
-    z-index: 5;
+    font-size: 24px;
+    z-index: 100000;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+}
+
+#settingsBtn.visible {
+    display: flex;
+}
+
+#settingsMenu {
+    display: none;
+    position: fixed;
+    top: 80px;
+    left: 20px;
+    background: rgba(0,0,0,0.95);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 12px;
+    padding: 15px;
+    z-index: 100001;
+    color: white;
+    font-size: 13px;
+    min-width: 200px;
+}
+
+#settingsMenu.visible {
+    display: block;
+}
+
+.menu-option {
+    padding: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    cursor: pointer;
+}
+
+.menu-option:last-child {
+    border-bottom: none;
+}
+
+.menu-option:active {
+    background: rgba(255,255,255,0.1);
 }
 
 /* MODE CALIBRATION */
 body.calibration .touch {
-    background: rgba(255,0,0,0.3);
+    background: rgba(255,0,0,0.4);
     border: 2px solid red;
 }
 
-body.calibration #calibBtn {
+/* Instructions de calibration */
+#calibInfo {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.95);
+    color: white;
+    padding: 15px 25px;
+    border-radius: 12px;
+    font-size: 12px;
+    z-index: 100002;
+    text-align: center;
+    max-width: 80%;
+    line-height: 1.5;
+}
+
+body.calibration #calibInfo {
     display: block;
 }
 
-body.calibration #codeDisplay {
+/* Instruction d'appui long */
+#longPressHint {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.9);
+    color: white;
+    padding: 20px 30px;
+    border-radius: 16px;
+    font-size: 14px;
+    z-index: 100003;
+    text-align: center;
     display: none;
+    animation: fadeInOut 3s forwards;
 }
 
-#calibBtn {
-    display: none;
-    position: fixed;
-    top: env(safe-area-inset-top, 10px);
-    right: 10px;
-    padding: 10px 20px;
-    background: rgba(0,0,0,0.8);
-    color: white;
-    border: 1px solid white;
-    border-radius: 8px;
-    font-size: 12px;
-    z-index: 1000;
-    cursor: pointer;
+@keyframes fadeInOut {
+    0% { opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { opacity: 0; display: none; }
 }
 
 @keyframes shake {
-    0%, 100% { transform: translateX(-50%); }
-    25% { transform: translateX(-45%); }
-    75% { transform: translateX(-55%); }
+    0%, 100% { transform: translate(0, 0); }
+    25% { transform: translate(-10px, 0); }
+    75% { transform: translate(10px, 0); }
 }
 
-.shake #codeDisplay {
+.shake {
     animation: shake 0.4s;
 }
 </style>
@@ -283,7 +328,7 @@ body.calibration #codeDisplay {
 <!-- ÉCRAN DE CONFIGURATION -->
 <div id="setup">
     <h1>📱 iPhone Lock Screen</h1>
-    <p>Upload tes captures d'écran pour créer ton écran de verrouillage personnalisé</p>
+    <p>Crée ton écran de verrouillage personnalisé</p>
     
     <div class="upload-section">
         <h3>1️⃣ Écran verrouillé</h3>
@@ -306,23 +351,14 @@ body.calibration #codeDisplay {
     <button id="startBtn">🚀 Démarrer</button>
     
     <div class="info-box">
-        💡 <strong>Astuce :</strong> Une fois lancé, clique sur ⚙️ en haut à gauche pour accéder aux options (calibration des zones tactiles, affichage des points, etc.)
+        💡 <strong>Astuce :</strong> Tes images seront sauvegardées automatiquement. Pour ajouter cette app à ton écran d'accueil : partage → Sur l'écran d'accueil.
     </div>
 </div>
 
 <!-- ÉCRAN PRINCIPAL -->
 <div id="container">
     <div id="phone">
-        <div id="codeDisplay">
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-        </div>
-
-        <!-- Zones tactiles ajustées pour iPhone 13 -->
+        <!-- Zones tactiles (positions en %) -->
         <div class="touch" data-digit="1" style="left:13%;  top:63%; width:18%; height:8.5%;"></div>
         <div class="touch" data-digit="2" style="left:41%;  top:63%; width:18%; height:8.5%;"></div>
         <div class="touch" data-digit="3" style="left:69%;  top:63%; width:18%; height:8.5%;"></div>
@@ -338,67 +374,25 @@ body.calibration #codeDisplay {
             <div id="secret"></div>
         </div>
     </div>
-    
-    <!-- Bouton settings -->
-    <button id="settingsBtn">⚙️</button>
-    <div id="settingsMenu">
-        <div class="menu-option" onclick="toggleCalibrationMode()">🎯 Mode calibration</div>
-        <div class="menu-option" onclick="openDotsControl()">🎚️ Ajuster les points</div>
-        <div class="menu-option" onclick="resetApp()">🔄 Recommencer</div>
-    </div>
-    
-    <!-- Panel de contrôle des points -->
-    <div id="dotsControl">
-        <h3 style="margin: 0 0 15px 0; font-size: 14px;">🎯 Ajuster les points</h3>
-        
-        <div class="control-group">
-            <label>Position verticale</label>
-            <input type="range" id="dotsTop" min="30" max="60" value="48" step="0.5">
-            <div class="control-values">
-                <span>Haut</span>
-                <span id="dotsTopValue">48%</span>
-                <span>Bas</span>
-            </div>
-        </div>
-        
-        <div class="control-group">
-            <label>Position horizontale</label>
-            <input type="range" id="dotsLeft" min="40" max="60" value="50" step="0.5">
-            <div class="control-values">
-                <span>Gauche</span>
-                <span id="dotsLeftValue">50%</span>
-                <span>Droite</span>
-            </div>
-        </div>
-        
-        <div class="control-group">
-            <label>Espacement entre les points</label>
-            <input type="range" id="dotsGap" min="6" max="20" value="12" step="1">
-            <div class="control-values">
-                <span>Serré</span>
-                <span id="dotsGapValue">12px</span>
-                <span>Large</span>
-            </div>
-        </div>
-        
-        <div class="control-group">
-            <label>Taille des points</label>
-            <input type="range" id="dotsSize" min="8" max="20" value="14" step="1">
-            <div class="control-values">
-                <span>Petit</span>
-                <span id="dotsSizeValue">14px</span>
-                <span>Grand</span>
-            </div>
-        </div>
-        
-        <div class="control-buttons">
-            <button class="btn-close" onclick="closeDotsControl()">Fermer</button>
-            <button class="btn-apply" onclick="applyDotsSettings()">✓ Valider</button>
-        </div>
-    </div>
 </div>
 
-<button id="calibBtn" onclick="toggleCalibration()">✓ Terminer calibration</button>
+<!-- BOUTON SETTINGS -->
+<button id="settingsBtn">⚙️</button>
+<div id="settingsMenu">
+    <div class="menu-option" onclick="toggleCalibrationMode()">🎯 Voir les zones tactiles</div>
+    <div class="menu-option" onclick="changeImages()">🖼️ Changer les images</div>
+    <div class="menu-option" onclick="resetAll()">🗑️ Tout réinitialiser</div>
+</div>
+
+<div id="calibInfo">
+    📍 Zones tactiles visibles<br>
+    Ajuste les positions dans le code si nécessaire<br>
+    <strong>Appui long à nouveau pour masquer</strong>
+</div>
+
+<div id="longPressHint">
+    💡 Appui long pour les réglages
+</div>
 
 <script>
 // 🔐 CODES VALIDES
@@ -408,17 +402,44 @@ const VALID_CODES = {
     "111111": "Leonardo DiCaprio"
 };
 
+// STOCKAGE LOCAL
+const STORAGE_KEYS = {
+    lockscreen: 'iphone_lock_lockscreen',
+    homescreen: 'iphone_lock_homescreen'
+};
+
 let input = "";
 let firstCode = null;
 let isUnlocked = false;
-let lockscreenData = null;
-let homescreenData = null;
+let calibrationMode = false;
+let longPressTimer = null;
+let settingsVisible = false;
 
-const dots = document.querySelectorAll('.dot');
 const phone = document.getElementById('phone');
 const setup = document.getElementById('setup');
 const container = document.getElementById('container');
 const startBtn = document.getElementById('startBtn');
+const settingsBtn = document.getElementById('settingsBtn');
+
+// CHARGEMENT DES IMAGES SAUVEGARDÉES
+window.addEventListener('load', function() {
+    const savedLock = localStorage.getItem(STORAGE_KEYS.lockscreen);
+    const savedHome = localStorage.getItem(STORAGE_KEYS.homescreen);
+    
+    if (savedLock && savedHome) {
+        // Images déjà sauvegardées : démarrer directement
+        phone.style.backgroundImage = `url(${savedLock})`;
+        document.getElementById('unlocked').style.backgroundImage = `url(${savedHome})`;
+        setup.style.display = 'none';
+        container.classList.add('visible');
+        document.body.classList.add('locked');
+        
+        // Afficher le hint après 2 secondes
+        setTimeout(() => {
+            document.getElementById('longPressHint').style.display = 'block';
+        }, 2000);
+    }
+});
 
 // GESTION DES UPLOADS
 document.getElementById('lockscreen').addEventListener('change', function(e) {
@@ -426,8 +447,9 @@ document.getElementById('lockscreen').addEventListener('change', function(e) {
     if (file) {
         const reader = new FileReader();
         reader.onload = function(event) {
-            lockscreenData = event.target.result;
-            document.getElementById('lockPreview').src = lockscreenData;
+            const data = event.target.result;
+            localStorage.setItem(STORAGE_KEYS.lockscreen, data);
+            document.getElementById('lockPreview').src = data;
             document.getElementById('lockPreview').classList.add('visible');
             checkReady();
         };
@@ -440,8 +462,9 @@ document.getElementById('homescreen').addEventListener('change', function(e) {
     if (file) {
         const reader = new FileReader();
         reader.onload = function(event) {
-            homescreenData = event.target.result;
-            document.getElementById('homePreview').src = homescreenData;
+            const data = event.target.result;
+            localStorage.setItem(STORAGE_KEYS.homescreen, data);
+            document.getElementById('homePreview').src = data;
             document.getElementById('homePreview').classList.add('visible');
             checkReady();
         };
@@ -450,126 +473,128 @@ document.getElementById('homescreen').addEventListener('change', function(e) {
 });
 
 function checkReady() {
-    if (lockscreenData && homescreenData) {
+    const hasLock = localStorage.getItem(STORAGE_KEYS.lockscreen);
+    const hasHome = localStorage.getItem(STORAGE_KEYS.homescreen);
+    if (hasLock && hasHome) {
         startBtn.classList.add('visible');
     }
 }
 
 startBtn.addEventListener('click', function() {
-    phone.style.backgroundImage = `url(${lockscreenData})`;
-    document.getElementById('unlocked').style.backgroundImage = `url(${homescreenData})`;
+    const lockData = localStorage.getItem(STORAGE_KEYS.lockscreen);
+    const homeData = localStorage.getItem(STORAGE_KEYS.homescreen);
+    
+    phone.style.backgroundImage = `url(${lockData})`;
+    document.getElementById('unlocked').style.backgroundImage = `url(${homeData})`;
     setup.style.display = 'none';
     container.classList.add('visible');
     document.body.classList.add('locked');
+    
+    // Afficher le hint après 2 secondes
+    setTimeout(() => {
+        document.getElementById('longPressHint').style.display = 'block';
+    }, 2000);
 });
 
-// MODE CALIBRATION - Désactivé par défaut
-let calibrationMode = false;
-let showDotsMode = false;
+// APPUI LONG pour afficher les réglages - Sur TOUT le container
+let longPressStartTime = 0;
 
-// Suppression de l'appui long automatique
-// Plus de déclenchement accidentel !
+container.addEventListener('touchstart', function(e) {
+    if (isUnlocked) return;
+    
+    longPressStartTime = Date.now();
+    
+    longPressTimer = setTimeout(() => {
+        // Vibration
+        if (navigator.vibrate) {
+            navigator.vibrate(50);
+        }
+        
+        if (!settingsVisible) {
+            // Afficher le bouton settings
+            settingsBtn.classList.add('visible');
+            settingsVisible = true;
+        } else {
+            // Toggle du mode calibration
+            calibrationMode = !calibrationMode;
+            if (calibrationMode) {
+                document.body.classList.add('calibration');
+            } else {
+                document.body.classList.remove('calibration');
+            }
+        }
+    }, 1500); // 1.5 secondes
+});
 
-function toggleCalibrationMode() {
-    calibrationMode = !calibrationMode;
-    if (calibrationMode) {
-        document.body.classList.add('calibration');
-        document.getElementById('settingsMenu').classList.remove('visible');
-    } else {
-        document.body.classList.remove('calibration');
+container.addEventListener('touchend', function(e) {
+    const pressDuration = Date.now() - longPressStartTime;
+    clearTimeout(longPressTimer);
+    
+    // Si c'était un appui court et qu'on n'est pas en mode calibration, 
+    // propager aux zones tactiles
+    if (pressDuration < 1500 && !calibrationMode) {
+        // Laisser l'événement se propager normalement
     }
-}
+});
 
-function openDotsControl() {
-    document.body.classList.add('show-dots');
-    document.getElementById('dotsControl').classList.add('visible');
-    document.getElementById('settingsMenu').classList.remove('visible');
-    showDotsMode = true;
-}
+container.addEventListener('touchmove', function(e) {
+    clearTimeout(longPressTimer);
+});
 
-function closeDotsControl() {
-    document.getElementById('dotsControl').classList.remove('visible');
-}
-
-function applyDotsSettings() {
-    document.body.classList.remove('show-dots');
-    document.getElementById('dotsControl').classList.remove('visible');
-    showDotsMode = false;
-}
-
-function resetApp() {
-    location.reload();
-}
-
-function toggleCalibration() {
-    calibrationMode = false;
-    document.body.classList.remove('calibration');
-}
-
-// Menu settings
-document.getElementById('settingsBtn').addEventListener('click', (e) => {
+// MENU SETTINGS
+settingsBtn.addEventListener('click', function(e) {
     e.stopPropagation();
     const menu = document.getElementById('settingsMenu');
     menu.classList.toggle('visible');
 });
 
-// Fermer le menu si on clique ailleurs
-document.addEventListener('click', () => {
+document.addEventListener('click', function() {
     document.getElementById('settingsMenu').classList.remove('visible');
 });
 
-// Contrôle des sliders en temps réel
-const dotsDisplay = document.getElementById('codeDisplay');
-
-document.getElementById('dotsTop').addEventListener('input', function() {
-    const value = this.value;
-    dotsDisplay.style.top = value + '%';
-    document.getElementById('dotsTopValue').textContent = value + '%';
-});
-
-document.getElementById('dotsLeft').addEventListener('input', function() {
-    const value = this.value;
-    dotsDisplay.style.left = value + '%';
-    document.getElementById('dotsLeftValue').textContent = value + '%';
-});
-
-document.getElementById('dotsGap').addEventListener('input', function() {
-    const value = this.value;
-    dotsDisplay.style.gap = value + 'px';
-    document.getElementById('dotsGapValue').textContent = value + 'px';
-});
-
-document.getElementById('dotsSize').addEventListener('input', function() {
-    const value = this.value;
-    const dots = document.querySelectorAll('.dot');
-    dots.forEach(dot => {
-        dot.style.width = value + 'px';
-        dot.style.height = value + 'px';
-    });
-    document.getElementById('dotsSizeValue').textContent = value + 'px';
-});
-
-// MISE À JOUR VISUELLE
-function updateDots() {
-    // Affiche les points seulement quand on commence à taper
-    if (input.length > 0) {
-        document.getElementById('codeDisplay').classList.add('active');
+function toggleCalibrationMode() {
+    calibrationMode = !calibrationMode;
+    if (calibrationMode) {
+        document.body.classList.add('calibration');
     } else {
-        document.getElementById('codeDisplay').classList.remove('active');
+        document.body.classList.remove('calibration');
     }
-    
-    dots.forEach((dot, i) => {
-        if (i < input.length) {
-            dot.classList.add('filled');
-        } else {
-            dot.classList.remove('filled');
-        }
-    });
+    document.getElementById('settingsMenu').classList.remove('visible');
 }
 
+function changeImages() {
+    settingsVisible = false;
+    settingsBtn.classList.remove('visible');
+    document.body.classList.remove('locked');
+    container.classList.remove('visible');
+    setup.style.display = 'flex';
+    document.getElementById('settingsMenu').classList.remove('visible');
+    
+    // Charger les images actuelles dans les previews
+    const lockData = localStorage.getItem(STORAGE_KEYS.lockscreen);
+    const homeData = localStorage.getItem(STORAGE_KEYS.homescreen);
+    if (lockData) {
+        document.getElementById('lockPreview').src = lockData;
+        document.getElementById('lockPreview').classList.add('visible');
+    }
+    if (homeData) {
+        document.getElementById('homePreview').src = homeData;
+        document.getElementById('homePreview').classList.add('visible');
+    }
+    checkReady();
+}
+
+function resetAll() {
+    if (confirm('Supprimer toutes les données et recommencer ?')) {
+        localStorage.removeItem(STORAGE_KEYS.lockscreen);
+        localStorage.removeItem(STORAGE_KEYS.homescreen);
+        location.reload();
+    }
+}
+
+// LOGIQUE DU CODE
 function reset() {
     input = "";
-    updateDots();
 }
 
 function showError() {
@@ -600,7 +625,6 @@ function handleDigit(digit) {
     }
     
     input += digit;
-    updateDots();
     
     if (input.length === 6) {
         setTimeout(() => {
@@ -616,32 +640,36 @@ function handleDigit(digit) {
     }
 }
 
-// ZONES TACTILES
+// ZONES TACTILES - Ne se déclenchent que si appui court
 document.querySelectorAll(".touch").forEach(zone => {
-    zone.addEventListener("click", (e) => {
-        e.preventDefault();
-        handleDigit(zone.dataset.digit);
+    let touchStartTime = 0;
+    
+    zone.addEventListener("touchstart", function(e) {
+        touchStartTime = Date.now();
     });
     
-    zone.addEventListener("touchend", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        handleDigit(zone.dataset.digit);
+    zone.addEventListener("touchend", function(e) {
+        const duration = Date.now() - touchStartTime;
+        
+        // Seulement si appui court (moins de 500ms) et pas en mode calibration
+        if (duration < 500 && !calibrationMode) {
+            e.preventDefault();
+            e.stopPropagation();
+            handleDigit(zone.dataset.digit);
+        }
     });
 });
 
 // Empêcher les comportements par défaut
-document.addEventListener('gesturestart', (e) => {
+document.addEventListener('gesturestart', function(e) {
     e.preventDefault();
 });
 
-document.addEventListener('touchmove', (e) => {
+document.addEventListener('touchmove', function(e) {
     if (document.body.classList.contains('locked')) {
         e.preventDefault();
     }
 }, { passive: false });
 </script>
-</body>
-</html>
 </body>
 </html>
