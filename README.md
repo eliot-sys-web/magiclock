@@ -181,9 +181,13 @@ body.locked {
     top: 48%;
     left: 50%;
     transform: translateX(-50%);
-    display: flex;
+    display: none;
     gap: 12px;
     z-index: 10;
+}
+
+#codeDisplay.active {
+    display: flex;
 }
 
 .dot {
@@ -424,6 +428,13 @@ function toggleCalibration() {
 
 // MISE À JOUR VISUELLE
 function updateDots() {
+    // Affiche les points seulement quand on commence à taper
+    if (input.length > 0) {
+        document.getElementById('codeDisplay').classList.add('active');
+    } else {
+        document.getElementById('codeDisplay').classList.remove('active');
+    }
+    
     dots.forEach((dot, i) => {
         if (i < input.length) {
             dot.classList.add('filled');
