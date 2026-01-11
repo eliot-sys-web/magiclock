@@ -22,16 +22,16 @@ html, body {
     margin: 0;
     padding: 0;
     width: 100%;
-    height: 100%;
     background: black;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    position: fixed;
-    overscroll-behavior: none;
 }
 
 body.locked {
     overflow: hidden;
     touch-action: none;
+    position: fixed;
+    height: 100%;
+    overscroll-behavior: none;
 }
 
 /* ÉCRAN DE CONFIGURATION */
