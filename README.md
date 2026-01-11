@@ -41,7 +41,7 @@ html, body {
     display: none;
     position: absolute;
     inset: 0;
-    background-image: url("lockscreen.png");
+    background-image: url("IMG_3629.png");
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
