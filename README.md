@@ -196,9 +196,9 @@ body.calib .touch {
     left: 20px;
     width: 50px;
     height: 50px;
-    background: rgba(0,0,0,0.8);
+    background: rgba(0,0,0,0.6);
     color: white;
-    border: 2px solid white;
+    border: 2px solid rgba(255,255,255,0.5);
     border-radius: 50%;
     font-size: 24px;
     z-index: 10000;
@@ -206,10 +206,23 @@ body.calib .touch {
     display: none;
     align-items: center;
     justify-content: center;
+    transition: opacity 0.3s;
 }
 
 #settingsBtn.visible {
     display: flex;
+}
+
+/* Sur tactile, toujours visible mais transparent */
+@media (hover: none) and (pointer: coarse) {
+    body.locked #settingsBtn {
+        display: flex;
+        opacity: 0.3;
+    }
+    
+    body.locked #settingsBtn.visible {
+        opacity: 1;
+    }
 }
 
 #menu {
