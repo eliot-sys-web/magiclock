@@ -1,15 +1,21 @@
-<!DOCTYPE html>
+// Support tactile pour appui long
+cont.addEventListener('touchstart', () => {
+    if(unlock || calib) return;
+    lp = setTimeout(() => {
+        sBtn.classList.add('visible');
+        if(navigator.vibrate) navigator.vibrate(50);
+    }, 1500);
+});
+cont.addEventListener('touchend', () => clearTimeout(lp));
+cont.addEventListener('touchmove', () => clearTimeout(lp));<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
 <title>iPhone</title>
-<!-- PWA CONFIGURATION COMPLÈTE -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="">
-<meta name="mobile-web-app-capable" content="yes">
-<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==">
 <style>
 * {
     -webkit-tap-highlight-color: transparent;
@@ -29,13 +35,12 @@ html, body {
 
 body.locked {
     overflow: hidden;
-    touch-action: none;
     position: fixed;
     height: 100%;
     width: 100%;
+    touch-action: none;
 }
 
-/* ÉCRAN DE CONFIGURATION */
 #setup {
     width: 100%;
     min-height: 100vh;
@@ -62,7 +67,6 @@ body.locked {
     margin-bottom: 30px;
     text-align: center;
     max-width: 320px;
-    line-height: 1.5;
 }
 
 .upload-section {
@@ -78,7 +82,6 @@ body.locked {
 .upload-section h3 {
     font-size: 16px;
     margin: 0 0 12px 0;
-    font-weight: 500;
 }
 
 .upload-label {
@@ -91,11 +94,6 @@ body.locked {
     text-align: center;
     font-weight: 600;
     font-size: 14px;
-    transition: transform 0.2s;
-}
-
-.upload-label:active {
-    transform: scale(0.95);
 }
 
 .upload-input {
@@ -108,7 +106,6 @@ body.locked {
     max-width: 100%;
     max-height: 200px;
     display: none;
-    border: 2px solid rgba(255,255,255,0.3);
 }
 
 .preview.visible {
@@ -127,28 +124,12 @@ body.locked {
     margin-top: 20px;
     margin-bottom: 40px;
     display: none;
-    transition: transform 0.2s;
-}
-
-#startBtn:active {
-    transform: scale(0.95);
 }
 
 #startBtn.visible {
     display: block;
 }
 
-.info-box {
-    background: rgba(255,255,255,0.1);
-    border-radius: 12px;
-    padding: 15px;
-    margin-top: 20px;
-    max-width: 340px;
-    font-size: 12px;
-    line-height: 1.5;
-}
-
-/* CONTENEUR PRINCIPAL */
 #container {
     width: 100vw;
     height: 100vh;
@@ -167,28 +148,35 @@ body.locked {
     width: 100%;
     height: 100%;
     position: absolute;
-    top: 0;
-    left: 0;
     background-size: 100% 100%;
-    background-position: center center;
-    background-repeat: no-repeat;
+    background-position: center;
+    touch-action: none;
+    user-select: none;
 }
 
-/* ZONES TACTILES - INVISIBLES MAIS CLIQUABLES */
 .touch {
     position: absolute;
     z-index: 10;
     cursor: pointer;
 }
 
-/* ÉCRAN DÉVERROUILLÉ */
+body.debug .touch {
+    background: rgba(0,255,0,0.3);
+    border: 2px solid green;
+}
+
+body.calib .touch {
+    background: rgba(255,0,0,0.5);
+    border: 3px solid red;
+    cursor: move;
+}
+
 #unlocked {
     display: none;
     position: absolute;
     inset: 0;
     background-size: 100% 100%;
-    background-position: center center;
-    background-repeat: no-repeat;
+    background-position: center;
     z-index: 100;
 }
 
@@ -200,10 +188,8 @@ body.locked {
     opacity: 0.25;
     color: white;
     text-align: right;
-    line-height: 1.3;
 }
 
-/* BOUTON SETTINGS - Caché par défaut */
 #settingsBtn {
     position: fixed;
     top: 20px;
@@ -212,62 +198,77 @@ body.locked {
     height: 50px;
     background: rgba(0,0,0,0.8);
     color: white;
-    border: 2px solid rgba(255,255,255,0.5);
+    border: 2px solid white;
     border-radius: 50%;
     font-size: 24px;
-    z-index: 100000;
+    z-index: 10000;
     cursor: pointer;
     display: none;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.8);
 }
 
 #settingsBtn.visible {
     display: flex;
 }
 
-#settingsMenu {
+#menu {
     display: none;
     position: fixed;
     top: 80px;
     left: 20px;
     background: rgba(0,0,0,0.95);
-    border: 1px solid rgba(255,255,255,0.3);
+    border: 1px solid white;
     border-radius: 12px;
-    padding: 15px;
-    z-index: 100001;
+    padding: 10px;
+    z-index: 10001;
     color: white;
     font-size: 13px;
-    min-width: 200px;
+    min-width: 180px;
 }
 
-#settingsMenu.visible {
+#menu.visible {
     display: block;
 }
 
-.menu-option {
+.opt {
     padding: 10px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
     cursor: pointer;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
 }
 
-.menu-option:last-child {
+.opt:last-child {
     border-bottom: none;
 }
 
-.menu-option:active {
+.opt:hover {
     background: rgba(255,255,255,0.1);
 }
 
-/* MODE CALIBRATION */
-body.calibration .touch {
-    background: rgba(255,0,0,0.4);
-    border: 2px solid red;
+/* Bouton de validation en mode calibration */
+#saveBtn {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    z-index: 10003;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
 }
 
-/* Instructions de calibration */
-#calibInfo {
+body.calib #saveBtn {
+    display: block;
+}
+
+#info {
     display: none;
     position: fixed;
     bottom: 80px;
@@ -278,77 +279,13 @@ body.calibration .touch {
     padding: 15px 25px;
     border-radius: 12px;
     font-size: 12px;
-    z-index: 100002;
+    z-index: 10002;
     text-align: center;
     max-width: 80%;
-    line-height: 1.5;
 }
 
-body.calibration #calibInfo {
+body.calib #info {
     display: block;
-}
-
-/* Boutons de sauvegarde en mode calibration */
-#calibButtons {
-    display: none;
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 100003;
-    gap: 10px;
-}
-
-body.calibration #calibButtons {
-    display: flex;
-}
-
-#calibButtons button {
-    padding: 12px 24px;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-#saveCalib {
-    background: #4CAF50;
-    color: white;
-}
-
-#cancelCalib {
-    background: rgba(255,255,255,0.2);
-    color: white;
-}
-
-#exportCalib {
-    background: #2196F3;
-    color: white;
-}
-
-/* Instruction d'appui long */
-#longPressHint {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0,0,0,0.9);
-    color: white;
-    padding: 20px 30px;
-    border-radius: 16px;
-    font-size: 14px;
-    z-index: 100003;
-    text-align: center;
-    display: none;
-    animation: fadeInOut 3s forwards;
-}
-
-@keyframes fadeInOut {
-    0% { opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 1; }
-    100% { opacity: 0; display: none; }
 }
 
 @keyframes shake {
@@ -364,556 +301,302 @@ body.calibration #calibButtons {
 </head>
 <body>
 
-<!-- ÉCRAN DE CONFIGURATION -->
 <div id="setup">
     <h1>📱 iPhone Lock Screen</h1>
-    <p>Crée ton écran de verrouillage personnalisé</p>
+    <p>Upload tes captures d'écran</p>
     
     <div class="upload-section">
         <h3>1️⃣ Écran verrouillé</h3>
-        <label for="lockscreen" class="upload-label">
-            📸 Choisir l'image
-        </label>
-        <input type="file" id="lockscreen" class="upload-input" accept="image/*">
-        <img id="lockPreview" class="preview">
+        <label for="lock" class="upload-label">📸 Choisir</label>
+        <input type="file" id="lock" class="upload-input" accept="image/*">
+        <img id="prev1" class="preview">
     </div>
     
     <div class="upload-section">
         <h3>2️⃣ Écran d'accueil</h3>
-        <label for="homescreen" class="upload-label">
-            🏠 Choisir l'image
-        </label>
-        <input type="file" id="homescreen" class="upload-input" accept="image/*">
-        <img id="homePreview" class="preview">
+        <label for="home" class="upload-label">🏠 Choisir</label>
+        <input type="file" id="home" class="upload-input" accept="image/*">
+        <img id="prev2" class="preview">
     </div>
     
     <button id="startBtn">🚀 Démarrer</button>
-    
-    <div class="info-box">
-        💡 <strong>Astuce :</strong> Tes images seront sauvegardées automatiquement. Pour ajouter cette app à ton écran d'accueil : partage → Sur l'écran d'accueil.
-    </div>
 </div>
 
-<!-- ÉCRAN PRINCIPAL -->
 <div id="container">
     <div id="phone">
-        <!-- Zones tactiles (positions en %) -->
-        <div class="touch" data-digit="1" style="left:13%;  top:63%; width:18%; height:8.5%;"></div>
-        <div class="touch" data-digit="2" style="left:41%;  top:63%; width:18%; height:8.5%;"></div>
-        <div class="touch" data-digit="3" style="left:69%;  top:63%; width:18%; height:8.5%;"></div>
-        <div class="touch" data-digit="4" style="left:13%;  top:72.5%; width:18%; height:8.5%;"></div>
-        <div class="touch" data-digit="5" style="left:41%;  top:72.5%; width:18%; height:8.5%;"></div>
-        <div class="touch" data-digit="6" style="left:69%;  top:72.5%; width:18%; height:8.5%;"></div>
-        <div class="touch" data-digit="7" style="left:13%;  top:82%; width:18%; height:8.5%;"></div>
-        <div class="touch" data-digit="8" style="left:41%;  top:82%; width:18%; height:8.5%;"></div>
-        <div class="touch" data-digit="9" style="left:69%;  top:82%; width:18%; height:8.5%;"></div>
-        <div class="touch" data-digit="0" style="left:41%;  top:91.5%; width:18%; height:8.5%;"></div>
-
-        <div id="unlocked">
-            <div id="secret"></div>
-        </div>
+        <div class="touch" data-d="1" style="left:13%; top:63%; width:18%; height:8.5%;"></div>
+        <div class="touch" data-d="2" style="left:41%; top:63%; width:18%; height:8.5%;"></div>
+        <div class="touch" data-d="3" style="left:69%; top:63%; width:18%; height:8.5%;"></div>
+        <div class="touch" data-d="4" style="left:13%; top:72.5%; width:18%; height:8.5%;"></div>
+        <div class="touch" data-d="5" style="left:41%; top:72.5%; width:18%; height:8.5%;"></div>
+        <div class="touch" data-d="6" style="left:69%; top:72.5%; width:18%; height:8.5%;"></div>
+        <div class="touch" data-d="7" style="left:13%; top:82%; width:18%; height:8.5%;"></div>
+        <div class="touch" data-d="8" style="left:41%; top:82%; width:18%; height:8.5%;"></div>
+        <div class="touch" data-d="9" style="left:69%; top:82%; width:18%; height:8.5%;"></div>
+        <div class="touch" data-d="0" style="left:41%; top:91.5%; width:18%; height:8.5%;"></div>
+        <div id="unlocked"><div id="secret"></div></div>
     </div>
 </div>
 
-<!-- BOUTON SETTINGS -->
 <button id="settingsBtn">⚙️</button>
-<div id="settingsMenu">
-    <div class="menu-option" onclick="toggleCalibrationMode()">🎯 Voir les zones tactiles</div>
-    <div class="menu-option" onclick="changeImages()">🖼️ Changer les images</div>
-    <div class="menu-option" onclick="resetAll()">🗑️ Tout réinitialiser</div>
+<div id="menu">
+    <div class="opt" onclick="toggleCalib()">🎯 Déplacer zones</div>
+    <div class="opt" onclick="toggleDebug()">👁️ Voir zones</div>
+    <div class="opt" onclick="back()">🖼️ Changer images</div>
 </div>
-
-<div id="calibInfo">
-    🎯 <strong>Mode déplacement activé</strong><br>
-    Glisse les zones rouges pour les positionner<br>
-    Clique sur "Sauvegarder" quand c'est OK
-</div>
-
-<div id="calibButtons">
-    <button id="cancelCalib" onclick="cancelCalibration()">Annuler</button>
-    <button id="exportCalib" onclick="exportPositions()">📋 Copier</button>
-    <button id="saveCalib" onclick="saveCalibration()">✓ Sauvegarder</button>
-</div>
-
-<div id="longPressHint">
-    💡 Appui long pour les réglages
-</div>
+<div id="info">Glisse les zones rouges<br>Clique "Valider" quand c'est OK</div>
+<button id="saveBtn" onclick="saveCalib()">✓ Valider les positions</button>
 
 <script>
-// 🔐 CODES VALIDES
-const VALID_CODES = {
-    "123456": "Brad Pitt",
-    "654321": "Emma Watson",
-    "111111": "Leonardo DiCaprio"
-};
-
-// STOCKAGE LOCAL
-const STORAGE_KEYS = {
-    lockscreen: 'iphone_lock_lockscreen',
-    homescreen: 'iphone_lock_homescreen'
-};
-
-let input = "";
-let firstCode = null;
-let isUnlocked = false;
-let calibrationMode = false;
-let longPressTimer = null;
-let settingsVisible = false;
-
-// Pour le glisser-déposer des zones
-let draggedElement = null;
-let originalPositions = {};
-let isDragging = false;
+const CODES = {"123456":"Brad Pitt","654321":"Emma Watson","111111":"Leonardo DiCaprio"};
+let inp = "", first = null, unlock = false, calib = false, debug = false;
+let lockData, homeData, drag = null;
 
 const phone = document.getElementById('phone');
 const setup = document.getElementById('setup');
-const container = document.getElementById('container');
-const startBtn = document.getElementById('startBtn');
-const settingsBtn = document.getElementById('settingsBtn');
+const cont = document.getElementById('container');
+const btn = document.getElementById('startBtn');
+const sBtn = document.getElementById('settingsBtn');
 
-// CHARGEMENT DES IMAGES SAUVEGARDÉES
-window.addEventListener('load', function() {
-    const savedLock = localStorage.getItem(STORAGE_KEYS.lockscreen);
-    const savedHome = localStorage.getItem(STORAGE_KEYS.homescreen);
-    
-    if (savedLock && savedHome) {
-        // Images déjà sauvegardées : démarrer directement
-        phone.style.backgroundImage = `url(${savedLock})`;
-        document.getElementById('unlocked').style.backgroundImage = `url(${savedHome})`;
-        setup.style.display = 'none';
-        container.classList.add('visible');
-        document.body.classList.add('locked');
-        
-        // Afficher le hint après 2 secondes
-        setTimeout(() => {
-            document.getElementById('longPressHint').style.display = 'block';
-        }, 2000);
-    }
-});
-
-// GESTION DES UPLOADS
-document.getElementById('lockscreen').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            const data = event.target.result;
-            localStorage.setItem(STORAGE_KEYS.lockscreen, data);
-            document.getElementById('lockPreview').src = data;
-            document.getElementById('lockPreview').classList.add('visible');
-            checkReady();
+document.getElementById('lock').onchange = e => {
+    const f = e.target.files[0];
+    if(f) {
+        const r = new FileReader();
+        r.onload = ev => {
+            lockData = ev.target.result;
+            document.getElementById('prev1').src = lockData;
+            document.getElementById('prev1').classList.add('visible');
+            check();
         };
-        reader.readAsDataURL(file);
+        r.readAsDataURL(f);
     }
-});
+};
 
-document.getElementById('homescreen').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            const data = event.target.result;
-            localStorage.setItem(STORAGE_KEYS.homescreen, data);
-            document.getElementById('homePreview').src = data;
-            document.getElementById('homePreview').classList.add('visible');
-            checkReady();
+document.getElementById('home').onchange = e => {
+    const f = e.target.files[0];
+    if(f) {
+        const r = new FileReader();
+        r.onload = ev => {
+            homeData = ev.target.result;
+            document.getElementById('prev2').src = homeData;
+            document.getElementById('prev2').classList.add('visible');
+            check();
         };
-        reader.readAsDataURL(file);
+        r.readAsDataURL(f);
     }
-});
+};
 
-function checkReady() {
-    const hasLock = localStorage.getItem(STORAGE_KEYS.lockscreen);
-    const hasHome = localStorage.getItem(STORAGE_KEYS.homescreen);
-    if (hasLock && hasHome) {
-        startBtn.classList.add('visible');
-    }
+function check() {
+    if(lockData && homeData) btn.classList.add('visible');
 }
 
-startBtn.addEventListener('click', function() {
-    const lockData = localStorage.getItem(STORAGE_KEYS.lockscreen);
-    const homeData = localStorage.getItem(STORAGE_KEYS.homescreen);
-    
+btn.onclick = () => {
     phone.style.backgroundImage = `url(${lockData})`;
     document.getElementById('unlocked').style.backgroundImage = `url(${homeData})`;
     setup.style.display = 'none';
-    container.classList.add('visible');
+    cont.classList.add('visible');
     document.body.classList.add('locked');
-    
-    // Afficher le hint après 2 secondes
-    setTimeout(() => {
-        document.getElementById('longPressHint').style.display = 'block';
-    }, 2000);
+};
+
+let lp = null;
+cont.addEventListener('mousedown', () => {
+    if(unlock || calib) return;
+    lp = setTimeout(() => {
+        sBtn.classList.add('visible');
+        if(navigator.vibrate) navigator.vibrate(50);
+    }, 1500);
 });
+cont.addEventListener('mouseup', () => clearTimeout(lp));
+cont.addEventListener('mousemove', () => clearTimeout(lp));
 
-// APPUI LONG pour afficher les réglages - Sur TOUT le container
-// Fonctionne sur tactile ET souris
-let longPressStartTime = 0;
-
-function handleLongPressStart(e) {
-    if (isUnlocked) return;
-    
-    // Ne pas déclencher l'appui long si on est sur une zone en mode calibration
-    if (calibrationMode && e.target.classList.contains('touch')) {
-        return;
-    }
-    
-    longPressStartTime = Date.now();
-    
-    longPressTimer = setTimeout(() => {
-        // Vibration
-        if (navigator.vibrate) {
-            navigator.vibrate(50);
-        }
-        
-        if (!settingsVisible) {
-            // Afficher le bouton settings
-            settingsBtn.classList.add('visible');
-            settingsVisible = true;
-        } else {
-            // Toggle du mode calibration
-            calibrationMode = !calibrationMode;
-            if (calibrationMode) {
-                document.body.classList.add('calibration');
-                // Sauvegarder les positions originales
-                document.querySelectorAll('.touch').forEach(zone => {
-                    originalPositions[zone.dataset.digit] = {
-                        left: zone.style.left,
-                        top: zone.style.top
-                    };
-                });
-            } else {
-                document.body.classList.remove('calibration');
-            }
-        }
-    }, 1500); // 1.5 secondes
-}
-
-function handleLongPressEnd(e) {
-    const pressDuration = Date.now() - longPressStartTime;
-    clearTimeout(longPressTimer);
-}
-
-function handleLongPressCancel(e) {
-    // Ne pas annuler si on drag une zone
-    if (!isDragging) {
-        clearTimeout(longPressTimer);
-    }
-}
-
-// Tactile
-container.addEventListener('touchstart', handleLongPressStart);
-container.addEventListener('touchend', handleLongPressEnd);
-container.addEventListener('touchmove', handleLongPressCancel);
-
-// Souris (pour tester sur ordinateur)
-container.addEventListener('mousedown', handleLongPressStart);
-container.addEventListener('mouseup', handleLongPressEnd);
-container.addEventListener('mousemove', handleLongPressCancel);
-
-// MENU SETTINGS
-settingsBtn.addEventListener('click', function(e) {
+sBtn.onclick = e => {
     e.stopPropagation();
-    const menu = document.getElementById('settingsMenu');
-    menu.classList.toggle('visible');
-});
+    document.getElementById('menu').classList.toggle('visible');
+};
 
-document.addEventListener('click', function() {
-    document.getElementById('settingsMenu').classList.remove('visible');
-});
-
-function toggleCalibrationMode() {
-    calibrationMode = !calibrationMode;
-    if (calibrationMode) {
-        document.body.classList.add('calibration');
-        // Sauvegarder les positions originales
-        document.querySelectorAll('.touch').forEach(zone => {
-            originalPositions[zone.dataset.digit] = {
-                left: zone.style.left,
-                top: zone.style.top
-            };
-        });
+function toggleCalib() {
+    calib = !calib;
+    if(calib) {
+        document.body.classList.add('calib');
+        document.body.classList.remove('debug');
+        debug = false;
     } else {
-        document.body.classList.remove('calibration');
+        document.body.classList.remove('calib');
     }
-    document.getElementById('settingsMenu').classList.remove('visible');
+    document.getElementById('menu').classList.remove('visible');
 }
 
-function saveCalibration() {
-    // Sauvegarder les positions dans localStorage
-    const positions = {};
-    document.querySelectorAll('.touch').forEach(zone => {
-        positions[zone.dataset.digit] = {
-            left: zone.style.left,
-            top: zone.style.top,
-            width: zone.style.width,
-            height: zone.style.height
-        };
-    });
-    localStorage.setItem('zone_positions', JSON.stringify(positions));
-    
-    calibrationMode = false;
-    document.body.classList.remove('calibration');
-    
-    alert('✓ Positions sauvegardées !');
+function saveCalib() {
+    // Désactiver le mode calibration - les zones deviennent tactiles
+    calib = false;
+    document.body.classList.remove('calib');
+    alert('✓ Zones sauvegardées ! Elles sont maintenant actives.');
 }
 
-function cancelCalibration() {
-    // Restaurer les positions originales
-    document.querySelectorAll('.touch').forEach(zone => {
-        if (originalPositions[zone.dataset.digit]) {
-            zone.style.left = originalPositions[zone.dataset.digit].left;
-            zone.style.top = originalPositions[zone.dataset.digit].top;
-        }
-    });
-    
-    calibrationMode = false;
-    document.body.classList.remove('calibration');
+function toggleDebug() {
+    debug = !debug;
+    document.body.classList.toggle('debug');
+    document.body.classList.remove('calib');
+    calib = false;
+    document.getElementById('menu').classList.remove('visible');
 }
 
-function exportPositions() {
-    const positions = {};
-    document.querySelectorAll('.touch').forEach(zone => {
-        positions[zone.dataset.digit] = {
-            left: zone.style.left,
-            top: zone.style.top
-        };
-    });
-    
-    const text = JSON.stringify(positions, null, 2);
-    
-    // Copier dans le presse-papier
-    if (navigator.clipboard) {
-        navigator.clipboard.writeText(text).then(() => {
-            alert('📋 Positions copiées dans le presse-papier !');
-        });
-    } else {
-        alert('Positions:\n' + text);
-    }
-}
-
-function changeImages() {
-    settingsVisible = false;
-    settingsBtn.classList.remove('visible');
-    document.body.classList.remove('locked');
-    container.classList.remove('visible');
+function back() {
+    sBtn.classList.remove('visible');
+    document.body.classList.remove('locked','calib','debug');
+    cont.classList.remove('visible');
     setup.style.display = 'flex';
-    document.getElementById('settingsMenu').classList.remove('visible');
-    
-    // Charger les images actuelles dans les previews
-    const lockData = localStorage.getItem(STORAGE_KEYS.lockscreen);
-    const homeData = localStorage.getItem(STORAGE_KEYS.homescreen);
-    if (lockData) {
-        document.getElementById('lockPreview').src = lockData;
-        document.getElementById('lockPreview').classList.add('visible');
-    }
-    if (homeData) {
-        document.getElementById('homePreview').src = homeData;
-        document.getElementById('homePreview').classList.add('visible');
-    }
-    checkReady();
+    document.getElementById('menu').classList.remove('visible');
 }
 
-function resetAll() {
-    if (confirm('Supprimer toutes les données et recommencer ?')) {
-        localStorage.removeItem(STORAGE_KEYS.lockscreen);
-        localStorage.removeItem(STORAGE_KEYS.homescreen);
-        location.reload();
-    }
-}
+function reset() { inp = ""; }
 
-// LOGIQUE DU CODE
-function reset() {
-    input = "";
-}
-
-function showError() {
+function err() {
     phone.classList.add('shake');
-    setTimeout(() => {
-        phone.classList.remove('shake');
-        reset();
-    }, 400);
+    setTimeout(() => { phone.classList.remove('shake'); reset(); }, 400);
 }
 
-function unlock(celebrity) {
-    isUnlocked = true;
-    document.getElementById("unlocked").style.display = "block";
-    document.getElementById("secret").innerHTML = 
-        `${celebrity}<br>${firstCode}`;
-    
-    if (navigator.vibrate) {
-        navigator.vibrate([50, 100, 50]);
-    }
+function unlockFn(c) {
+    unlock = true;
+    document.getElementById('unlocked').style.display = 'block';
+    document.getElementById('secret').innerHTML = `${c}<br>${first}`;
+    if(navigator.vibrate) navigator.vibrate([50,100,50]);
 }
 
-function handleDigit(digit) {
-    if (isUnlocked || calibrationMode) return;
-    if (input.length >= 6) return;
+function handle(d) {
+    if(unlock || calib) return;
     
-    if (navigator.vibrate) {
-        navigator.vibrate(10);
-    }
+    inp += d;
+    console.log('Input:', inp, 'Length:', inp.length); // Debug
     
-    input += digit;
-    
-    if (input.length === 6) {
+    if(inp.length === 6) {
         setTimeout(() => {
-            if (!firstCode) {
-                firstCode = input;
-                reset();
-            } else if (VALID_CODES[input]) {
-                unlock(VALID_CODES[input]);
-            } else {
-                showError();
+            if(!first) { 
+                console.log('Premier code mémorisé:', inp);
+                first = inp; 
+                reset(); 
+            }
+            else if(CODES[inp]) {
+                console.log('Code valide! Déverrouillage...');
+                unlockFn(CODES[inp]);
+            }
+            else {
+                console.log('Code invalide! Shake...');
+                err();
             }
         }, 300);
     }
 }
 
-// ZONES TACTILES - Glisser-déposer en mode calibration
-document.querySelectorAll(".touch").forEach(zone => {
-    let touchStartTime = 0;
-    let startX, startY, offsetX, offsetY;
+document.querySelectorAll('.touch').forEach(z => {
+    let st = 0;
+    let handled = false;
     
-    // Fonction de démarrage du drag
-    function startDrag(e, clientX, clientY) {
-        if (!calibrationMode) {
-            touchStartTime = Date.now();
+    // === SOURIS (ordinateur) ===
+    z.addEventListener('mousedown', e => {
+        st = Date.now();
+        handled = false;
+        
+        if(!calib) return;
+        
+        drag = z;
+        const r = z.getBoundingClientRect();
+        z._ox = e.clientX - r.left;
+        z._oy = e.clientY - r.top;
+        e.preventDefault();
+        e.stopPropagation();
+    });
+    
+    z.addEventListener('mouseup', e => {
+        const dur = Date.now() - st;
+        
+        if(drag === z) { 
+            drag = null;
+            e.preventDefault();
+            e.stopPropagation();
             return;
         }
         
-        isDragging = true;
-        draggedElement = zone;
-        zone.classList.add('dragging');
-        
-        const rect = zone.getBoundingClientRect();
-        const containerRect = phone.getBoundingClientRect();
-        
-        const offsetX = clientX - rect.left;
-        const offsetY = clientY - rect.top;
-        
-        // Stocker les offsets sur l'élément
-        zone._offsetX = offsetX;
-        zone._offsetY = offsetY;
-        
-        e.preventDefault();
-    }
-    
-    // Fonction de déplacement
-    function doDrag(e, clientX, clientY) {
-        if (!isDragging || !calibrationMode) return;
-        
-        const containerRect = phone.getBoundingClientRect();
-        
-        let newLeft = ((clientX - containerRect.left - offsetX) / containerRect.width) * 100;
-        let newTop = ((clientY - containerRect.top - offsetY) / containerRect.height) * 100;
-        
-        // Limiter aux bords
-        newLeft = Math.max(0, Math.min(newLeft, 100 - parseFloat(zone.style.width)));
-        newTop = Math.max(0, Math.min(newTop, 100 - parseFloat(zone.style.height)));
-        
-        zone.style.left = newLeft + '%';
-        zone.style.top = newTop + '%';
-        
-        e.preventDefault();
-    }
-    
-    // Fonction de fin du drag
-    function endDrag(e) {
-        if (isDragging) {
-            isDragging = false;
-            zone.classList.remove('dragging');
-            draggedElement = null;
-        } else if (!calibrationMode) {
-            const duration = Date.now() - touchStartTime;
-            if (duration < 500) {
-                handleDigit(zone.dataset.digit);
-            }
-        }
-    }
-    
-    // Événements tactiles
-    zone.addEventListener("touchstart", function(e) {
-        const touch = e.touches[0];
-        startDrag(e, touch.clientX, touch.clientY);
-    });
-    
-    zone.addEventListener("touchmove", function(e) {
-        const touch = e.touches[0];
-        doDrag(e, touch.clientX, touch.clientY);
-    });
-    
-    zone.addEventListener("touchend", endDrag);
-    
-    // Événements souris
-    zone.addEventListener("mousedown", function(e) {
-        startDrag(e, e.clientX, e.clientY);
-        e.stopPropagation(); // Empêcher la propagation au container
-    });
-    
-    zone.addEventListener("mousemove", function(e) {
-        if (draggedElement === zone) {
-            doDrag(e, e.clientX, e.clientY);
-        }
-    });
-    
-    zone.addEventListener("mouseup", function(e) {
-        if (draggedElement === zone) {
-            endDrag(e);
+        if(!calib && !debug && dur < 500 && !handled) {
+            handled = true;
+            handle(z.dataset.d);
+            e.preventDefault();
             e.stopPropagation();
         }
     });
-});
-
-// Charger les positions sauvegardées au démarrage
-const savedPositions = localStorage.getItem('zone_positions');
-if (savedPositions) {
-    const positions = JSON.parse(savedPositions);
-    document.querySelectorAll('.touch').forEach(zone => {
-        const digit = zone.dataset.digit;
-        if (positions[digit]) {
-            zone.style.left = positions[digit].left;
-            zone.style.top = positions[digit].top;
+    
+    // === TACTILE (iPhone) ===
+    z.addEventListener('touchstart', e => {
+        st = Date.now();
+        handled = false;
+        
+        if(!calib) return;
+        
+        const t = e.touches[0];
+        drag = z;
+        const r = z.getBoundingClientRect();
+        z._ox = t.clientX - r.left;
+        z._oy = t.clientY - r.top;
+        e.preventDefault();
+    });
+    
+    z.addEventListener('touchend', e => {
+        const dur = Date.now() - st;
+        
+        if(drag === z) { 
+            drag = null;
+            e.preventDefault();
+            return;
+        }
+        
+        if(!calib && !debug && dur < 500 && !handled) {
+            handled = true;
+            handle(z.dataset.d);
+            e.preventDefault();
         }
     });
-}
-
-// Ajouter les événements globaux pour le mousemove et mouseup
-document.addEventListener("mousemove", function(e) {
-    if (draggedElement && calibrationMode) {
-        const containerRect = phone.getBoundingClientRect();
-        
-        let newLeft = ((e.clientX - containerRect.left - draggedElement._offsetX) / containerRect.width) * 100;
-        let newTop = ((e.clientY - containerRect.top - draggedElement._offsetY) / containerRect.height) * 100;
-        
-        newLeft = Math.max(0, Math.min(newLeft, 100 - parseFloat(draggedElement.style.width)));
-        newTop = Math.max(0, Math.min(newTop, 100 - parseFloat(draggedElement.style.height)));
-        
-        draggedElement.style.left = newLeft + '%';
-        draggedElement.style.top = newTop + '%';
-        
-        e.preventDefault();
-    }
 });
 
-document.addEventListener("mouseup", function(e) {
-    if (draggedElement && calibrationMode) {
-        draggedElement.classList.remove('dragging');
-        draggedElement = null;
-        isDragging = false;
-    }
-});
-
-// Empêcher les comportements par défaut
-document.addEventListener('gesturestart', function(e) {
+// Drag global pour souris
+document.onmousemove = e => {
+    if(!drag || !calib) return;
+    const pr = phone.getBoundingClientRect();
+    let nl = ((e.clientX - pr.left - drag._ox) / pr.width) * 100;
+    let nt = ((e.clientY - pr.top - drag._oy) / pr.height) * 100;
+    nl = Math.max(0, Math.min(nl, 100 - parseFloat(drag.style.width)));
+    nt = Math.max(0, Math.min(nt, 100 - parseFloat(drag.style.height)));
+    drag.style.left = nl + '%';
+    drag.style.top = nt + '%';
     e.preventDefault();
-});
+};
 
-document.addEventListener('touchmove', function(e) {
-    if (document.body.classList.contains('locked')) {
-        e.preventDefault();
-    }
-}, { passive: false });
+document.onmouseup = () => { if(drag) drag = null; };
+
+// Drag global pour tactile
+document.addEventListener('touchmove', e => {
+    if(!drag || !calib) return;
+    const t = e.touches[0];
+    const pr = phone.getBoundingClientRect();
+    let nl = ((t.clientX - pr.left - drag._ox) / pr.width) * 100;
+    let nt = ((t.clientY - pr.top - drag._oy) / pr.height) * 100;
+    nl = Math.max(0, Math.min(nl, 100 - parseFloat(drag.style.width)));
+    nt = Math.max(0, Math.min(nt, 100 - parseFloat(drag.style.height)));
+    drag.style.left = nl + '%';
+    drag.style.top = nt + '%';
+    e.preventDefault();
+}, {passive: false});
+
+document.addEventListener('touchend', () => { if(drag) drag = null; });
+
+// Empêcher le zoom et autres comportements indésirables
+document.addEventListener('gesturestart', e => e.preventDefault());
+document.addEventListener('gesturechange', e => e.preventDefault());
+document.addEventListener('gestureend', e => e.preventDefault());
+
+// Empêcher le scroll sur le container
+cont.addEventListener('touchmove', e => {
+    if(!calib) e.preventDefault();
+}, {passive: false});
 </script>
 </body>
 </html>
