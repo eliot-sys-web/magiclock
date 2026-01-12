@@ -1,99 +1,249 @@
-// Support tactile pour appui long
-cont.addEventListener('touchstart', () => {
-    if(unlock || calib) return;
-    lp = setTimeout(() => {
-        sBtn.classList.add('visible');
-        if(navigator.vibrate) navigator.vibrate(50);
-    }, 1500);
-});
-cont.addEventListener('touchend', () => clearTimeout(lp));
-cont.addEventListener('touchmove', () => clearTimeout(lp));<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
 <title>iPhone</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="">
+<meta name="apple-mobile-web-app-title" content=" ">
 <style>
 * {
-    -webkit-tap-highlight-color: transparent;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    user-select: none;
-    box-sizing: border-box;
-}
-
-html, body {
     margin: 0;
     padding: 0;
-    width: 100%;
-    background: black;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
 }
 
-body.locked {
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
     overflow: hidden;
-    position: fixed;
-    height: 100%;
-    width: 100%;
-    touch-action: none;
+    background: #000;
 }
 
-#setup {
-    width: 100%;
-    min-height: 100vh;
+/* ÉCRAN DE VERROUILLAGE */
+#lockscreen {
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e8ba3 100%);
+    background-size: cover;
+    background-position: center;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
-    padding: 40px 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    justify-content: space-between;
+    padding: 60px 0 40px;
+    position: relative;
+    overflow: hidden;
+}
+
+#lockscreen.custom-bg {
+    background-image: var(--bg-image);
+}
+
+/* HEURE ET DATE */
+.time {
+    font-size: 84px;
+    font-weight: 300;
     color: white;
+    letter-spacing: -2px;
+    text-align: center;
+}
+
+.date {
+    font-size: 20px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.9);
+    margin-top: 8px;
+}
+
+/* RONDS DE CODE */
+#dots {
+    display: flex;
+    gap: 16px;
+    margin: 40px 0;
+}
+
+.dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.5);
+    background: transparent;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dot.filled {
+    background: white;
+    border-color: white;
+    transform: scale(1.1);
+}
+
+/* MESSAGE */
+#message {
+    color: rgba(255,255,255,0.8);
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 20px;
+    height: 20px;
+}
+
+/* CLAVIER NUMÉRIQUE */
+.keyboard {
+    width: 100%;
+    max-width: 390px;
+    padding: 0 20px;
+}
+
+.keyboard-row {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 20px;
+}
+
+.key {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    box-shadow: 0 4px 30px rgba(0,0,0,0.1);
+}
+
+.key:active {
+    background: rgba(255,255,255,0.3);
+    transform: scale(0.95);
+}
+
+.key-number {
+    font-size: 36px;
+    font-weight: 300;
+    color: white;
+    line-height: 1;
+}
+
+.key-letters {
+    font-size: 10px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.6);
+    letter-spacing: 2px;
+    margin-top: 2px;
+}
+
+/* BOUTON DELETE */
+.key-delete {
+    background: rgba(255,255,255,0.1);
+}
+
+.key-delete svg {
+    width: 32px;
+    height: 32px;
+    fill: white;
+}
+
+/* ÉCRAN D'ACCUEIL */
+#homescreen {
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-size: cover;
+    background-position: center;
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    overflow: hidden;
+}
+
+#homescreen.custom-bg {
+    background-image: var(--home-bg);
+}
+
+#homescreen.show {
+    display: block;
+    animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+/* SECRET MESSAGE */
+#secret {
+    position: absolute;
+    bottom: 30px;
+    right: 20px;
+    color: rgba(255,255,255,0.3);
+    font-size: 11px;
+    text-align: right;
+    line-height: 1.4;
+}
+
+/* SETUP */
+#setup {
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
 }
 
 #setup h1 {
-    font-size: 24px;
-    margin-bottom: 10px;
+    font-size: 28px;
+    color: white;
+    margin-bottom: 40px;
     font-weight: 600;
 }
 
-#setup p {
-    font-size: 14px;
-    opacity: 0.9;
-    margin-bottom: 30px;
-    text-align: center;
-    max-width: 320px;
-}
-
-.upload-section {
+.upload-box {
     background: rgba(255,255,255,0.15);
     backdrop-filter: blur(10px);
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 15px;
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 20px;
     width: 100%;
     max-width: 340px;
+    text-align: center;
 }
 
-.upload-section h3 {
-    font-size: 16px;
-    margin: 0 0 12px 0;
+.upload-box h3 {
+    color: white;
+    font-size: 18px;
+    margin-bottom: 15px;
 }
 
 .upload-label {
-    display: block;
+    display: inline-block;
     background: white;
     color: #667eea;
-    padding: 12px 24px;
+    padding: 14px 32px;
     border-radius: 12px;
-    cursor: pointer;
-    text-align: center;
     font-weight: 600;
-    font-size: 14px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.upload-label:active {
+    transform: scale(0.95);
 }
 
 .upload-input {
@@ -101,14 +251,14 @@ body.locked {
 }
 
 .preview {
-    margin-top: 12px;
-    border-radius: 8px;
+    margin-top: 15px;
     max-width: 100%;
-    max-height: 200px;
+    max-height: 150px;
+    border-radius: 10px;
     display: none;
 }
 
-.preview.visible {
+.preview.show {
     display: block;
 }
 
@@ -118,498 +268,420 @@ body.locked {
     border: none;
     padding: 16px 48px;
     border-radius: 12px;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 600;
     cursor: pointer;
+    margin-top: 30px;
+    display: none;
+    transition: transform 0.2s;
+}
+
+#startBtn.show {
+    display: inline-block;
+}
+
+#startBtn:active {
+    transform: scale(0.95);
+}
+
+.skip-btn {
+    color: rgba(255,255,255,0.8);
+    font-size: 16px;
     margin-top: 20px;
-    margin-bottom: 40px;
-    display: none;
-}
-
-#startBtn.visible {
-    display: block;
-}
-
-#container {
-    width: 100vw;
-    height: 100vh;
-    position: fixed;
-    top: 0;
-    left: 0;
-    display: none;
-    overflow: hidden;
-}
-
-#container.visible {
-    display: block;
-}
-
-#phone {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    background-size: 100% 100%;
-    background-position: center;
-    touch-action: none;
-    user-select: none;
-}
-
-.touch {
-    position: absolute;
-    z-index: 10;
     cursor: pointer;
+    text-decoration: underline;
 }
 
-body.debug .touch {
-    background: rgba(0,255,0,0.3);
-    border: 2px solid green;
-}
-
-body.calib .touch {
-    background: rgba(255,0,0,0.5);
-    border: 3px solid red;
-    cursor: move;
-}
-
-#unlocked {
-    display: none;
-    position: absolute;
-    inset: 0;
-    background-size: 100% 100%;
-    background-position: center;
-    z-index: 100;
-}
-
-#secret {
-    position: absolute;
-    bottom: 20px;
-    right: 15px;
-    font-size: 10px;
-    opacity: 0.25;
-    color: white;
-    text-align: right;
-}
-
-#settingsBtn {
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    width: 50px;
-    height: 50px;
-    background: rgba(0,0,0,0.6);
-    color: white;
-    border: 2px solid rgba(255,255,255,0.5);
-    border-radius: 50%;
-    font-size: 24px;
-    z-index: 10000;
-    cursor: pointer;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.3s;
-}
-
-#settingsBtn.visible {
-    display: flex;
-}
-
-/* Sur tactile, toujours visible mais transparent */
-@media (hover: none) and (pointer: coarse) {
-    body.locked #settingsBtn {
-        display: flex;
-        opacity: 0.3;
-    }
-    
-    body.locked #settingsBtn.visible {
-        opacity: 1;
-    }
-}
-
-#menu {
-    display: none;
-    position: fixed;
-    top: 80px;
-    left: 20px;
-    background: rgba(0,0,0,0.95);
-    border: 1px solid white;
-    border-radius: 12px;
-    padding: 10px;
-    z-index: 10001;
-    color: white;
-    font-size: 13px;
-    min-width: 180px;
-}
-
-#menu.visible {
-    display: block;
-}
-
-.opt {
-    padding: 10px;
-    cursor: pointer;
-    border-bottom: 1px solid rgba(255,255,255,0.2);
-}
-
-.opt:last-child {
-    border-bottom: none;
-}
-
-.opt:hover {
-    background: rgba(255,255,255,0.1);
-}
-
-/* Bouton de validation en mode calibration */
-#saveBtn {
-    display: none;
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #4CAF50;
-    color: white;
-    border: none;
-    padding: 15px 40px;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 600;
-    z-index: 10003;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-}
-
-body.calib #saveBtn {
-    display: block;
-}
-
-#info {
-    display: none;
-    position: fixed;
-    bottom: 80px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0,0,0,0.95);
-    color: white;
-    padding: 15px 25px;
-    border-radius: 12px;
-    font-size: 12px;
-    z-index: 10002;
-    text-align: center;
-    max-width: 80%;
-}
-
-body.calib #info {
-    display: block;
-}
-
+/* ANIMATION SHAKE */
 @keyframes shake {
-    0%, 100% { transform: translate(0, 0); }
-    25% { transform: translate(-10px, 0); }
-    75% { transform: translate(10px, 0); }
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
 }
 
 .shake {
     animation: shake 0.4s;
 }
+
+/* SETTINGS BUTTON */
+#settingsBtn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    font-size: 20px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    cursor: pointer;
+}
+
+#settingsBtn.show {
+    display: flex;
+}
+
+#menu {
+    position: fixed;
+    top: 75px;
+    left: 20px;
+    background: rgba(0,0,0,0.9);
+    backdrop-filter: blur(20px);
+    border-radius: 12px;
+    padding: 10px;
+    display: none;
+    z-index: 1001;
+    min-width: 200px;
+}
+
+#menu.show {
+    display: block;
+}
+
+.menu-opt {
+    padding: 12px;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+.menu-opt:hover {
+    background: rgba(255,255,255,0.1);
+}
 </style>
 </head>
 <body>
 
+<!-- SETUP -->
 <div id="setup">
-    <h1>📱 iPhone Lock Screen</h1>
-    <p>Upload tes captures d'écran</p>
+    <h1>📱 Personnalise ton iPhone</h1>
     
-    <div class="upload-section">
-        <h3>1️⃣ Écran verrouillé</h3>
-        <label for="lock" class="upload-label">📸 Choisir</label>
-        <input type="file" id="lock" class="upload-input" accept="image/*">
+    <div class="upload-box">
+        <h3>Fond d'écran verrouillé</h3>
+        <label class="upload-label" for="lockBg">📸 Choisir</label>
+        <input type="file" id="lockBg" class="upload-input" accept="image/*">
         <img id="prev1" class="preview">
     </div>
     
-    <div class="upload-section">
-        <h3>2️⃣ Écran d'accueil</h3>
-        <label for="home" class="upload-label">🏠 Choisir</label>
-        <input type="file" id="home" class="upload-input" accept="image/*">
+    <div class="upload-box">
+        <h3>Fond d'écran accueil</h3>
+        <label class="upload-label" for="homeBg">🏠 Choisir</label>
+        <input type="file" id="homeBg" class="upload-input" accept="image/*">
         <img id="prev2" class="preview">
     </div>
     
     <button id="startBtn">🚀 Démarrer</button>
+    <div class="skip-btn" onclick="skipSetup()">Passer (utiliser les fonds par défaut)</div>
 </div>
 
-<div id="container">
-    <div id="phone">
-        <div class="touch" data-d="1" style="left:13%; top:63%; width:18%; height:8.5%;"></div>
-        <div class="touch" data-d="2" style="left:41%; top:63%; width:18%; height:8.5%;"></div>
-        <div class="touch" data-d="3" style="left:69%; top:63%; width:18%; height:8.5%;"></div>
-        <div class="touch" data-d="4" style="left:13%; top:72.5%; width:18%; height:8.5%;"></div>
-        <div class="touch" data-d="5" style="left:41%; top:72.5%; width:18%; height:8.5%;"></div>
-        <div class="touch" data-d="6" style="left:69%; top:72.5%; width:18%; height:8.5%;"></div>
-        <div class="touch" data-d="7" style="left:13%; top:82%; width:18%; height:8.5%;"></div>
-        <div class="touch" data-d="8" style="left:41%; top:82%; width:18%; height:8.5%;"></div>
-        <div class="touch" data-d="9" style="left:69%; top:82%; width:18%; height:8.5%;"></div>
-        <div class="touch" data-d="0" style="left:41%; top:91.5%; width:18%; height:8.5%;"></div>
-        <div id="unlocked"><div id="secret"></div></div>
+<!-- LOCKSCREEN -->
+<div id="lockscreen" style="display:none;">
+    <div>
+        <div class="time" id="time">12:00</div>
+        <div class="date" id="date">Lundi 13 janvier</div>
+    </div>
+    
+    <div style="text-align: center;">
+        <div id="dots">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+        <div id="message"></div>
+    </div>
+    
+    <div class="keyboard">
+        <div class="keyboard-row">
+            <div class="key" data-key="1">
+                <div class="key-number">1</div>
+                <div class="key-letters"></div>
+            </div>
+            <div class="key" data-key="2">
+                <div class="key-number">2</div>
+                <div class="key-letters">ABC</div>
+            </div>
+            <div class="key" data-key="3">
+                <div class="key-number">3</div>
+                <div class="key-letters">DEF</div>
+            </div>
+        </div>
+        
+        <div class="keyboard-row">
+            <div class="key" data-key="4">
+                <div class="key-number">4</div>
+                <div class="key-letters">GHI</div>
+            </div>
+            <div class="key" data-key="5">
+                <div class="key-number">5</div>
+                <div class="key-letters">JKL</div>
+            </div>
+            <div class="key" data-key="6">
+                <div class="key-number">6</div>
+                <div class="key-letters">MNO</div>
+            </div>
+        </div>
+        
+        <div class="keyboard-row">
+            <div class="key" data-key="7">
+                <div class="key-number">7</div>
+                <div class="key-letters">PQRS</div>
+            </div>
+            <div class="key" data-key="8">
+                <div class="key-number">8</div>
+                <div class="key-letters">TUV</div>
+            </div>
+            <div class="key" data-key="9">
+                <div class="key-number">9</div>
+                <div class="key-letters">WXYZ</div>
+            </div>
+        </div>
+        
+        <div class="keyboard-row">
+            <div class="key" style="opacity:0; pointer-events:none;"></div>
+            <div class="key" data-key="0">
+                <div class="key-number">0</div>
+            </div>
+            <div class="key key-delete" onclick="deleteDigit()">
+                <svg viewBox="0 0 24 24"><path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z"/></svg>
+            </div>
+        </div>
     </div>
 </div>
 
-<button id="settingsBtn">⚙️</button>
-<div id="menu">
-    <div class="opt" onclick="toggleCalib()">🎯 Déplacer zones</div>
-    <div class="opt" onclick="toggleDebug()">👁️ Voir zones</div>
-    <div class="opt" onclick="back()">🖼️ Changer images</div>
+<!-- HOMESCREEN -->
+<div id="homescreen">
+    <div id="secret"></div>
 </div>
-<div id="info">Glisse les zones rouges<br>Clique "Valider" quand c'est OK</div>
-<button id="saveBtn" onclick="saveCalib()">✓ Valider les positions</button>
+
+<!-- SETTINGS -->
+<button id="settingsBtn" onclick="toggleMenu()">⚙️</button>
+<div id="menu">
+    <div class="menu-opt" onclick="changeBg()">🖼️ Changer les fonds</div>
+    <div class="menu-opt" onclick="resetApp()">🔄 Recommencer</div>
+</div>
 
 <script>
-const CODES = {"123456":"Brad Pitt","654321":"Emma Watson","111111":"Leonardo DiCaprio"};
-let inp = "", first = null, unlock = false, calib = false, debug = false;
-let lockData, homeData, drag = null;
+const CODES = {
+    "123456": "Brad Pitt",
+    "654321": "Emma Watson",
+    "111111": "Leonardo DiCaprio"
+};
 
-const phone = document.getElementById('phone');
+let input = "";
+let firstCode = null;
+let isUnlocked = false;
+let lockBgData = null;
+let homeBgData = null;
+
 const setup = document.getElementById('setup');
-const cont = document.getElementById('container');
-const btn = document.getElementById('startBtn');
-const sBtn = document.getElementById('settingsBtn');
+const lockscreen = document.getElementById('lockscreen');
+const homescreen = document.getElementById('homescreen');
+const dots = document.querySelectorAll('.dot');
+const message = document.getElementById('message');
+const settingsBtn = document.getElementById('settingsBtn');
 
-document.getElementById('lock').onchange = e => {
-    const f = e.target.files[0];
-    if(f) {
-        const r = new FileReader();
-        r.onload = ev => {
-            lockData = ev.target.result;
-            document.getElementById('prev1').src = lockData;
-            document.getElementById('prev1').classList.add('visible');
-            check();
-        };
-        r.readAsDataURL(f);
-    }
-};
-
-document.getElementById('home').onchange = e => {
-    const f = e.target.files[0];
-    if(f) {
-        const r = new FileReader();
-        r.onload = ev => {
-            homeData = ev.target.result;
-            document.getElementById('prev2').src = homeData;
-            document.getElementById('prev2').classList.add('visible');
-            check();
-        };
-        r.readAsDataURL(f);
-    }
-};
-
-function check() {
-    if(lockData && homeData) btn.classList.add('visible');
+// Heure et date
+function updateTime() {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    document.getElementById('time').textContent = `${hours}:${minutes}`;
+    
+    const days = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+    const months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+    const day = days[now.getDay()];
+    const date = now.getDate();
+    const month = months[now.getMonth()];
+    document.getElementById('date').textContent = `${day} ${date} ${month}`;
 }
 
-btn.onclick = () => {
-    phone.style.backgroundImage = `url(${lockData})`;
-    document.getElementById('unlocked').style.backgroundImage = `url(${homeData})`;
+setInterval(updateTime, 1000);
+updateTime();
+
+// Upload images
+document.getElementById('lockBg').onchange = e => {
+    const file = e.target.files[0];
+    if(file) {
+        const reader = new FileReader();
+        reader.onload = ev => {
+            lockBgData = ev.target.result;
+            document.getElementById('prev1').src = lockBgData;
+            document.getElementById('prev1').classList.add('show');
+            checkReady();
+        };
+        reader.readAsDataURL(file);
+    }
+};
+
+document.getElementById('homeBg').onchange = e => {
+    const file = e.target.files[0];
+    if(file) {
+        const reader = new FileReader();
+        reader.onload = ev => {
+            homeBgData = ev.target.result;
+            document.getElementById('prev2').src = homeBgData;
+            document.getElementById('prev2').classList.add('show');
+            checkReady();
+        };
+        reader.readAsDataURL(file);
+    }
+};
+
+function checkReady() {
+    if(lockBgData && homeBgData) {
+        document.getElementById('startBtn').classList.add('show');
+    }
+}
+
+document.getElementById('startBtn').onclick = startApp;
+
+function skipSetup() {
+    startApp();
+}
+
+function startApp() {
+    if(lockBgData) {
+        lockscreen.style.setProperty('--bg-image', `url(${lockBgData})`);
+        lockscreen.classList.add('custom-bg');
+    }
+    if(homeBgData) {
+        homescreen.style.setProperty('--home-bg', `url(${homeBgData})`);
+        homescreen.classList.add('custom-bg');
+    }
+    
     setup.style.display = 'none';
-    cont.classList.add('visible');
-    document.body.classList.add('locked');
-};
+    lockscreen.style.display = 'flex';
+    settingsBtn.classList.add('show');
+}
 
-let lp = null;
-cont.addEventListener('mousedown', () => {
-    if(unlock || calib) return;
-    lp = setTimeout(() => {
-        sBtn.classList.add('visible');
-        if(navigator.vibrate) navigator.vibrate(50);
-    }, 1500);
+// Keyboard
+document.querySelectorAll('.key[data-key]').forEach(key => {
+    key.onclick = () => {
+        if(isUnlocked) return;
+        const digit = key.dataset.key;
+        handleDigit(digit);
+    };
 });
-cont.addEventListener('mouseup', () => clearTimeout(lp));
-cont.addEventListener('mousemove', () => clearTimeout(lp));
 
-sBtn.onclick = e => {
-    e.stopPropagation();
-    document.getElementById('menu').classList.toggle('visible');
-};
-
-function toggleCalib() {
-    calib = !calib;
-    if(calib) {
-        document.body.classList.add('calib');
-        document.body.classList.remove('debug');
-        debug = false;
-    } else {
-        document.body.classList.remove('calib');
-    }
-    document.getElementById('menu').classList.remove('visible');
-}
-
-function saveCalib() {
-    // Désactiver le mode calibration - les zones deviennent tactiles
-    calib = false;
-    document.body.classList.remove('calib');
-    alert('✓ Zones sauvegardées ! Elles sont maintenant actives.');
-}
-
-function toggleDebug() {
-    debug = !debug;
-    document.body.classList.toggle('debug');
-    document.body.classList.remove('calib');
-    calib = false;
-    document.getElementById('menu').classList.remove('visible');
-}
-
-function back() {
-    sBtn.classList.remove('visible');
-    document.body.classList.remove('locked','calib','debug');
-    cont.classList.remove('visible');
-    setup.style.display = 'flex';
-    document.getElementById('menu').classList.remove('visible');
-}
-
-function reset() { inp = ""; }
-
-function err() {
-    phone.classList.add('shake');
-    setTimeout(() => { phone.classList.remove('shake'); reset(); }, 400);
-}
-
-function unlockFn(c) {
-    unlock = true;
-    document.getElementById('unlocked').style.display = 'block';
-    document.getElementById('secret').innerHTML = `${c}<br>${first}`;
-    if(navigator.vibrate) navigator.vibrate([50,100,50]);
-}
-
-function handle(d) {
-    if(unlock || calib) return;
+function handleDigit(d) {
+    if(input.length >= 6 || isUnlocked) return;
     
-    inp += d;
-    console.log('Input:', inp, 'Length:', inp.length); // Debug
+    input += d;
+    updateDots();
     
-    if(inp.length === 6) {
+    if(navigator.vibrate) navigator.vibrate(10);
+    
+    console.log('Input:', input, 'FirstCode:', firstCode); // Debug
+    
+    if(input.length === 6) {
         setTimeout(() => {
-            if(!first) { 
-                console.log('Premier code mémorisé:', inp);
-                first = inp; 
-                reset(); 
-            }
-            else if(CODES[inp]) {
+            if(!firstCode) {
+                console.log('Premier code mémorisé:', input);
+                firstCode = input;
+                message.textContent = "Entrer à nouveau le code";
+                setTimeout(() => reset(), 500);
+            } else if(CODES[input]) {
                 console.log('Code valide! Déverrouillage...');
-                unlockFn(CODES[inp]);
-            }
-            else {
-                console.log('Code invalide! Shake...');
-                err();
+                message.textContent = "";
+                unlock(CODES[input]);
+            } else {
+                console.log('Code incorrect');
+                message.textContent = "Code incorrect";
+                lockscreen.classList.add('shake');
+                setTimeout(() => {
+                    lockscreen.classList.remove('shake');
+                    message.textContent = "Entrer à nouveau le code";
+                    reset();
+                }, 400);
             }
         }, 300);
     }
 }
 
-document.querySelectorAll('.touch').forEach(z => {
-    let st = 0;
-    let handled = false;
-    
-    // === SOURIS (ordinateur) ===
-    z.addEventListener('mousedown', e => {
-        st = Date.now();
-        handled = false;
-        
-        if(!calib) return;
-        
-        drag = z;
-        const r = z.getBoundingClientRect();
-        z._ox = e.clientX - r.left;
-        z._oy = e.clientY - r.top;
-        e.preventDefault();
-        e.stopPropagation();
-    });
-    
-    z.addEventListener('mouseup', e => {
-        const dur = Date.now() - st;
-        
-        if(drag === z) { 
-            drag = null;
-            e.preventDefault();
-            e.stopPropagation();
-            return;
-        }
-        
-        if(!calib && !debug && dur < 500 && !handled) {
-            handled = true;
-            handle(z.dataset.d);
-            e.preventDefault();
-            e.stopPropagation();
+function deleteDigit() {
+    if(input.length > 0) {
+        input = input.slice(0, -1);
+        updateDots();
+        if(navigator.vibrate) navigator.vibrate(10);
+    }
+}
+
+function updateDots() {
+    dots.forEach((dot, i) => {
+        if(i < input.length) {
+            dot.classList.add('filled');
+        } else {
+            dot.classList.remove('filled');
         }
     });
+}
+
+function reset() {
+    input = "";
+    updateDots();
+}
+
+function unlock(celebrity) {
+    console.log('Unlock function called for:', celebrity);
+    isUnlocked = true;
     
-    // === TACTILE (iPhone) ===
-    z.addEventListener('touchstart', e => {
-        st = Date.now();
-        handled = false;
-        
-        if(!calib) return;
-        
-        const t = e.touches[0];
-        drag = z;
-        const r = z.getBoundingClientRect();
-        z._ox = t.clientX - r.left;
-        z._oy = t.clientY - r.top;
-        e.preventDefault();
-    });
+    // Afficher le secret
+    document.getElementById('secret').innerHTML = `${celebrity}<br>${firstCode}`;
     
-    z.addEventListener('touchend', e => {
-        const dur = Date.now() - st;
-        
-        if(drag === z) { 
-            drag = null;
-            e.preventDefault();
-            return;
-        }
-        
-        if(!calib && !debug && dur < 500 && !handled) {
-            handled = true;
-            handle(z.dataset.d);
-            e.preventDefault();
-        }
-    });
+    // Afficher l'écran d'accueil
+    homescreen.style.display = 'block';
+    homescreen.classList.add('show');
+    
+    // Cacher l'écran de verrouillage après l'animation
+    setTimeout(() => {
+        lockscreen.style.display = 'none';
+    }, 400);
+    
+    // Vibration de succès
+    if(navigator.vibrate) {
+        navigator.vibrate([50, 100, 50]);
+    }
+    
+    console.log('Homescreen should be visible now');
+}
+
+// Settings
+function toggleMenu() {
+    document.getElementById('menu').classList.toggle('show');
+}
+
+function changeBg() {
+    isUnlocked = false;
+    firstCode = null;
+    input = "";
+    message.textContent = "";
+    homescreen.classList.remove('show');
+    lockscreen.style.display = 'none';
+    setup.style.display = 'flex';
+    settingsBtn.classList.remove('show');
+    document.getElementById('menu').classList.remove('show');
+}
+
+function resetApp() {
+    location.reload();
+}
+
+// Close menu on click outside
+document.addEventListener('click', (e) => {
+    if(!e.target.closest('#settingsBtn') && !e.target.closest('#menu')) {
+        document.getElementById('menu').classList.remove('show');
+    }
 });
-
-// Drag global pour souris
-document.onmousemove = e => {
-    if(!drag || !calib) return;
-    const pr = phone.getBoundingClientRect();
-    let nl = ((e.clientX - pr.left - drag._ox) / pr.width) * 100;
-    let nt = ((e.clientY - pr.top - drag._oy) / pr.height) * 100;
-    nl = Math.max(0, Math.min(nl, 100 - parseFloat(drag.style.width)));
-    nt = Math.max(0, Math.min(nt, 100 - parseFloat(drag.style.height)));
-    drag.style.left = nl + '%';
-    drag.style.top = nt + '%';
-    e.preventDefault();
-};
-
-document.onmouseup = () => { if(drag) drag = null; };
-
-// Drag global pour tactile
-document.addEventListener('touchmove', e => {
-    if(!drag || !calib) return;
-    const t = e.touches[0];
-    const pr = phone.getBoundingClientRect();
-    let nl = ((t.clientX - pr.left - drag._ox) / pr.width) * 100;
-    let nt = ((t.clientY - pr.top - drag._oy) / pr.height) * 100;
-    nl = Math.max(0, Math.min(nl, 100 - parseFloat(drag.style.width)));
-    nt = Math.max(0, Math.min(nt, 100 - parseFloat(drag.style.height)));
-    drag.style.left = nl + '%';
-    drag.style.top = nt + '%';
-    e.preventDefault();
-}, {passive: false});
-
-document.addEventListener('touchend', () => { if(drag) drag = null; });
-
-// Empêcher le zoom et autres comportements indésirables
-document.addEventListener('gesturestart', e => e.preventDefault());
-document.addEventListener('gesturechange', e => e.preventDefault());
-document.addEventListener('gestureend', e => e.preventDefault());
-
-// Empêcher le scroll sur le container SEULEMENT si pas en train de faire un appui long
-cont.addEventListener('touchmove', e => {
-    if(!calib && touchMoved) e.preventDefault();
-}, {passive: false});
 </script>
 </body>
 </html>
