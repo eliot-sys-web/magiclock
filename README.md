@@ -1,42 +1,13 @@
 // Support tactile pour appui long
-let lp = null;
-let startX = 0, startY = 0;
-const LONG_PRESS_DELAY = 1500;
-const MOVE_TOLERANCE = 12; // px
-
-function showSettingsBtn() {
-    sBtn.classList.add('visible');
-    if (navigator.vibrate) navigator.vibrate(50);
-}
-
-document.addEventListener('touchstart', e => {
-    if (unlock || calib) return;
-
-    const t = e.touches[0];
-    startX = t.clientX;
-    startY = t.clientY;
-
-    lp = setTimeout(showSettingsBtn, LONG_PRESS_DELAY);
-}, { passive: true });
-
-document.addEventListener('touchmove', e => {
-    if (!lp) return;
-
-    const t = e.touches[0];
-    const dx = Math.abs(t.clientX - startX);
-    const dy = Math.abs(t.clientY - startY);
-
-    if (dx > MOVE_TOLERANCE || dy > MOVE_TOLERANCE) {
-        clearTimeout(lp);
-        lp = null;
-    }
-}, { passive: true });
-
-document.addEventListener('touchend', () => {
-    clearTimeout(lp);
-    lp = null;
+cont.addEventListener('touchstart', () => {
+    if(unlock || calib) return;
+    lp = setTimeout(() => {
+        sBtn.classList.add('visible');
+        if(navigator.vibrate) navigator.vibrate(50);
+    }, 1500);
 });
-
+cont.addEventListener('touchend', () => clearTimeout(lp));
+cont.addEventListener('touchmove', () => clearTimeout(lp));<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -635,9 +606,9 @@ document.addEventListener('gesturestart', e => e.preventDefault());
 document.addEventListener('gesturechange', e => e.preventDefault());
 document.addEventListener('gestureend', e => e.preventDefault());
 
-// Empêcher le scroll sur le container
+// Empêcher le scroll sur le container SEULEMENT si pas en train de faire un appui long
 cont.addEventListener('touchmove', e => {
-    if(!calib) e.preventDefault();
+    if(!calib && touchMoved) e.preventDefault();
 }, {passive: false});
 </script>
 </body>
