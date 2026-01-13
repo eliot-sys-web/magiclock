@@ -1,22 +1,21 @@
 {
   "name": "iPhone Lock Screen",
   "short_name": "LockScreen",
-  "start_url": "/",
+  "start_url": "/iphone-lock",
   "display": "standalone",
-  "scope": "/",
+  "scope": "/iphone-lock",
   "background_color": "#000000",
   "theme_color": "#000000",
   "icons": [
     {
-      "src": "Lock192.png",
+      "src": "/iphone-lock/Lock192.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "Lock512.png",
+      "src": "/iphone-lock/Lock512.png",
       "type": "image/png",
       "sizes": "512x512"
     }
   ]
-  
 }
