@@ -8,12 +8,12 @@
   "theme_color": "#000000",
   "icons": [
     {
-      "src": "/iphone-lock/Lock192.png",
+      "src": "/magiclock/Lock192.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "/iphone-lock/Lock.png",
+      "src": "/magiclock/Lock.png",
       "type": "image/png",
       "sizes": "512x512"
     }
