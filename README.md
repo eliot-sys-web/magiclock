@@ -3,20 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <title>iPhone</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 
-  <!-- Viewport pour mobile -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<!-- Mode plein écran iOS -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lockscreen">
 
-  <!-- Mode plein écran iOS -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Lockscreen">
+<!-- Icones iOS (préférer 180x180) -->
+<link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180.png">
 
-  <!-- Icône iOS écran d'accueil (180x180 px recommandé) -->
-  <link rel="apple-touch-icon" href="Lock192.png">
-
-  <!-- Manifest PWA pour Android/Chrome -->
-  <link rel="manifest" href="manifest.json">
+<!-- Manifest PWA pour Android/Chrome -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#000000">
+ 
 
 
 
