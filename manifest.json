@@ -8,14 +8,21 @@
   "theme_color": "#000000",
   "icons": [
     {
-      "src": "/icons/Lock192.png",
+      "src": "Lock192.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "/icons/Lock512.png",
+      "src": "Lock512.png",
       "type": "image/png",
       "sizes": "512x512"
     }
   ]
+  "name": "iPhone Lock Screen",
+  "short_name": "LockScreen",
+  "start_url": "/",
+  "display": "standalone",
+  "scope": "/",
+  "background_color": "#000000",
+  "theme_color": "#000000",
 }
