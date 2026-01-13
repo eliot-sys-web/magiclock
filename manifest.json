@@ -18,11 +18,5 @@
       "sizes": "512x512"
     }
   ]
-  "name": "iPhone Lock Screen",
-  "short_name": "LockScreen",
-  "start_url": "/",
-  "display": "standalone",
-  "scope": "/",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  
 }
