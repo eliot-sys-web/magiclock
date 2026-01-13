@@ -5,16 +5,16 @@
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
-"icons": [
-{
-"src": "Lock192.png",
-"type": "image/png",
-"sizes": "192x192"
-},
-{
-"src": "Lock.png",
-"type": "image/png",
-"sizes": "512x512"
-}
-],
+  "icons": [
+    {
+      "src": "Lock192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "Lock.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
 }
