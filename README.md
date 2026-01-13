@@ -6,7 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content=" ">
 <style>
 * {
     margin: 0;
@@ -17,181 +16,267 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", sans-serif;
     overflow: hidden;
     background: #000;
-}
-
-/* ÉCRAN DE VERROUILLAGE */
-#lockscreen {
     width: 100vw;
     height: 100vh;
-    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e8ba3 100%);
+}
+
+/* LOCKSCREEN */
+#lockscreen {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
     background-size: cover;
     background-position: center;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-    padding: 60px 0 40px;
     position: relative;
-    overflow: hidden;
 }
 
-#lockscreen.custom-bg {
-    background-image: var(--bg-image);
+#lockscreen.custom {
+    background-image: var(--bg-lock);
 }
 
-/* HEURE ET DATE */
-.time {
-    font-size: 84px;
-    font-weight: 300;
+/* STATUS BAR */
+.status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 24px 0;
+    height: 48px;
     color: white;
-    letter-spacing: -2px;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.status-left {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.status-icon {
+    font-size: 13px;
+}
+
+/* TIME */
+.lock-time {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 80px;
+}
+
+.time-display {
+    font-size: 80px;
+    font-weight: 200;
+    color: white;
+    letter-spacing: -3px;
+    line-height: 1;
+}
+
+.date-display {
+    font-size: 18px;
+    font-weight: 600;
+    color: white;
+    margin-top: 4px;
+}
+
+/* NOTIFICATION AREA */
+.notification {
+    display: none;
+    margin: 0 20px;
+    padding: 16px;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border-radius: 20px;
+    border: 0.5px solid rgba(255,255,255,0.15);
+    color: white;
+}
+
+/* CODE AREA */
+.code-area {
+    margin: auto 0;
+    padding: 40px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#message {
+    color: white;
+    font-size: 15px;
+    font-weight: 400;
+    margin-bottom: 16px;
+    height: 24px;
     text-align: center;
 }
 
-.date {
-    font-size: 20px;
-    font-weight: 500;
-    color: rgba(255,255,255,0.9);
-    margin-top: 8px;
-}
-
-/* RONDS DE CODE */
 #dots {
     display: flex;
-    gap: 16px;
-    margin: 40px 0;
+    gap: 18px;
+    margin-bottom: 24px;
 }
 
 .dot {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0.5);
-    background: transparent;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(255,255,255,0.3);
+    transition: all 0.15s ease;
 }
 
 .dot.filled {
     background: white;
-    border-color: white;
-    transform: scale(1.1);
+    transform: scale(1.15);
 }
 
-/* MESSAGE */
-#message {
-    color: rgba(255,255,255,0.8);
-    font-size: 14px;
-    text-align: center;
-    margin-bottom: 20px;
-    height: 20px;
-}
-
-/* CLAVIER NUMÉRIQUE */
+/* KEYBOARD */
 .keyboard {
-    width: 100%;
-    max-width: 390px;
-    padding: 0 20px;
+    padding: 0 12px 36px;
 }
 
-.keyboard-row {
+.kb-row {
     display: flex;
     justify-content: center;
-    gap: 24px;
-    margin-bottom: 20px;
+    gap: 30px;
+    margin-bottom: 16px;
 }
 
 .key {
-    width: 80px;
-    height: 80px;
+    width: 75px;
+    height: 75px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.1);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.2);
+    -webkit-backdrop-filter: blur(20px);
+    border: 0.5px solid rgba(255,255,255,0.15);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.15s;
-    box-shadow: 0 4px 30px rgba(0,0,0,0.1);
+    transition: all 0.1s;
+    position: relative;
 }
 
 .key:active {
-    background: rgba(255,255,255,0.3);
-    transform: scale(0.95);
+    background: rgba(255,255,255,0.25);
+    transform: scale(0.92);
 }
 
-.key-number {
-    font-size: 36px;
+.key-num {
+    font-size: 32px;
     font-weight: 300;
     color: white;
     line-height: 1;
 }
 
-.key-letters {
-    font-size: 10px;
+.key-text {
+    font-size: 9px;
     font-weight: 500;
-    color: rgba(255,255,255,0.6);
-    letter-spacing: 2px;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 3px;
     margin-top: 2px;
+    text-transform: uppercase;
 }
 
-/* BOUTON DELETE */
+.key-empty {
+    opacity: 0;
+    pointer-events: none;
+}
+
 .key-delete {
-    background: rgba(255,255,255,0.1);
+    background: rgba(0,0,0,0.2);
+    backdrop-filter: blur(20px);
 }
 
 .key-delete svg {
-    width: 32px;
-    height: 32px;
+    width: 26px;
+    height: 26px;
     fill: white;
 }
 
-/* ÉCRAN D'ACCUEIL */
+/* BOTTOM BAR */
+.bottom-bar {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 40px 28px;
+    align-items: center;
+}
+
+.bottom-action {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(20px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.bottom-action:active {
+    background: rgba(255,255,255,0.2);
+}
+
+.bottom-text {
+    color: white;
+    font-size: 13px;
+    font-weight: 500;
+    margin-top: 6px;
+}
+
+.swipe-hint {
+    text-align: center;
+    color: rgba(255,255,255,0.6);
+    font-size: 16px;
+    margin-top: 12px;
+}
+
+/* HOMESCREEN */
 #homescreen {
-    width: 100vw;
-    height: 100vh;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
     background-size: cover;
     background-position: center;
     display: none;
     position: fixed;
     top: 0;
     left: 0;
-    z-index: 100;
-    overflow: hidden;
+    z-index: 200;
 }
 
-#homescreen.custom-bg {
-    background-image: var(--home-bg);
+#homescreen.custom {
+    background-image: var(--bg-home);
 }
 
 #homescreen.show {
     display: block;
-    animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: slideUp 0.35s cubic-bezier(0.36, 0, 0.66, 0);
 }
 
 @keyframes slideUp {
-    from {
-        transform: translateY(100%);
-    }
-    to {
-        transform: translateY(0);
-    }
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
 }
 
-/* SECRET MESSAGE */
 #secret {
     position: absolute;
     bottom: 30px;
     right: 20px;
-    color: rgba(255,255,255,0.3);
-    font-size: 11px;
+    color: rgba(255,255,255,0.25);
+    font-size: 10px;
     text-align: right;
-    line-height: 1.4;
+    line-height: 1.5;
 }
 
 /* SETUP */
@@ -203,7 +288,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 40px 20px;
+    padding: 20px;
     overflow-y: auto;
 }
 
@@ -215,180 +300,160 @@ body {
 }
 
 .upload-box {
-    background: rgba(255,255,255,0.15);
-    backdrop-filter: blur(10px);
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(20px);
     border-radius: 20px;
-    padding: 30px;
-    margin-bottom: 20px;
+    padding: 24px;
+    margin-bottom: 16px;
     width: 100%;
     max-width: 340px;
-    text-align: center;
 }
 
 .upload-box h3 {
     color: white;
-    font-size: 18px;
-    margin-bottom: 15px;
+    font-size: 16px;
+    margin-bottom: 12px;
+    font-weight: 600;
 }
 
 .upload-label {
     display: inline-block;
     background: white;
     color: #667eea;
-    padding: 14px 32px;
+    padding: 12px 28px;
     border-radius: 12px;
     font-weight: 600;
+    font-size: 15px;
     cursor: pointer;
-    transition: transform 0.2s;
 }
 
-.upload-label:active {
-    transform: scale(0.95);
-}
-
-.upload-input {
-    display: none;
-}
+.upload-input { display: none; }
 
 .preview {
-    margin-top: 15px;
+    margin-top: 12px;
     max-width: 100%;
-    max-height: 150px;
+    max-height: 120px;
     border-radius: 10px;
     display: none;
 }
 
-.preview.show {
-    display: block;
-}
+.preview.show { display: block; }
 
 #startBtn {
     background: white;
     color: #667eea;
     border: none;
     padding: 16px 48px;
-    border-radius: 12px;
-    font-size: 18px;
+    border-radius: 14px;
+    font-size: 17px;
     font-weight: 600;
     cursor: pointer;
-    margin-top: 30px;
+    margin-top: 24px;
     display: none;
-    transition: transform 0.2s;
 }
 
-#startBtn.show {
-    display: inline-block;
-}
+#startBtn.show { display: inline-block; }
 
-#startBtn:active {
-    transform: scale(0.95);
-}
+.skip { color: rgba(255,255,255,0.8); margin-top: 16px; cursor: pointer; font-size: 15px; }
 
-.skip-btn {
-    color: rgba(255,255,255,0.8);
-    font-size: 16px;
-    margin-top: 20px;
-    cursor: pointer;
-    text-decoration: underline;
-}
-
-/* ANIMATION SHAKE */
-@keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-10px); }
-    75% { transform: translateX(10px); }
-}
-
-.shake {
-    animation: shake 0.4s;
-}
-
-/* SETTINGS BUTTON */
+/* SETTINGS */
 #settingsBtn {
     position: fixed;
-    top: 20px;
+    top: 60px;
     left: 20px;
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    background: rgba(0,0,0,0.3);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(0,0,0,0.25);
+    backdrop-filter: blur(20px);
+    border: 0.5px solid rgba(255,255,255,0.2);
     color: white;
-    font-size: 20px;
+    font-size: 18px;
     display: none;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: 300;
     cursor: pointer;
 }
 
-#settingsBtn.show {
-    display: flex;
-}
+#settingsBtn.show { display: flex; }
 
 #menu {
     position: fixed;
-    top: 75px;
+    top: 110px;
     left: 20px;
-    background: rgba(0,0,0,0.9);
-    backdrop-filter: blur(20px);
-    border-radius: 12px;
-    padding: 10px;
+    background: rgba(30,30,30,0.95);
+    backdrop-filter: blur(40px);
+    border-radius: 14px;
+    padding: 8px;
     display: none;
-    z-index: 1001;
+    z-index: 301;
     min-width: 200px;
+    border: 0.5px solid rgba(255,255,255,0.1);
 }
 
-#menu.show {
-    display: block;
-}
+#menu.show { display: block; }
 
 .menu-opt {
-    padding: 12px;
+    padding: 12px 14px;
     color: white;
-    font-size: 14px;
+    font-size: 15px;
     cursor: pointer;
     border-radius: 8px;
 }
 
-.menu-opt:hover {
-    background: rgba(255,255,255,0.1);
+.menu-opt:active { background: rgba(255,255,255,0.1); }
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-12px); }
+    75% { transform: translateX(12px); }
 }
+
+.shake { animation: shake 0.35s; }
 </style>
 </head>
 <body>
 
 <!-- SETUP -->
 <div id="setup">
-    <h1>📱 Personnalise ton iPhone</h1>
+    <h1>📱 iPhone Lock Screen</h1>
     
     <div class="upload-box">
         <h3>Fond d'écran verrouillé</h3>
-        <label class="upload-label" for="lockBg">📸 Choisir</label>
+        <label class="upload-label" for="lockBg">Choisir</label>
         <input type="file" id="lockBg" class="upload-input" accept="image/*">
         <img id="prev1" class="preview">
     </div>
     
     <div class="upload-box">
         <h3>Fond d'écran accueil</h3>
-        <label class="upload-label" for="homeBg">🏠 Choisir</label>
+        <label class="upload-label" for="homeBg">Choisir</label>
         <input type="file" id="homeBg" class="upload-input" accept="image/*">
         <img id="prev2" class="preview">
     </div>
     
-    <button id="startBtn">🚀 Démarrer</button>
-    <div class="skip-btn" onclick="skipSetup()">Passer (utiliser les fonds par défaut)</div>
+    <button id="startBtn">Démarrer</button>
+    <div class="skip" onclick="skip()">Passer</div>
 </div>
 
 <!-- LOCKSCREEN -->
 <div id="lockscreen" style="display:none;">
-    <div>
-        <div class="time" id="time">12:00</div>
-        <div class="date" id="date">Lundi 13 janvier</div>
+    <div class="status-bar">
+        <div class="status-left">
+            <span class="status-icon">📶</span>
+            <span class="status-icon">📡</span>
+        </div>
+        <div>🔋</div>
     </div>
     
-    <div style="text-align: center;">
+    <div class="lock-time">
+        <div class="time-display" id="time">12:00</div>
+        <div class="date-display" id="date">lundi 13 janvier</div>
+    </div>
+    
+    <div class="code-area">
+        <div id="message">Saisir le code</div>
         <div id="dots">
             <div class="dot"></div>
             <div class="dot"></div>
@@ -397,61 +462,28 @@ body {
             <div class="dot"></div>
             <div class="dot"></div>
         </div>
-        <div id="message"></div>
     </div>
     
     <div class="keyboard">
-        <div class="keyboard-row">
-            <div class="key" data-key="1">
-                <div class="key-number">1</div>
-                <div class="key-letters"></div>
-            </div>
-            <div class="key" data-key="2">
-                <div class="key-number">2</div>
-                <div class="key-letters">ABC</div>
-            </div>
-            <div class="key" data-key="3">
-                <div class="key-number">3</div>
-                <div class="key-letters">DEF</div>
-            </div>
+        <div class="kb-row">
+            <div class="key" data-k="1"><div class="key-num">1</div></div>
+            <div class="key" data-k="2"><div class="key-num">2</div><div class="key-text">ABC</div></div>
+            <div class="key" data-k="3"><div class="key-num">3</div><div class="key-text">DEF</div></div>
         </div>
-        
-        <div class="keyboard-row">
-            <div class="key" data-key="4">
-                <div class="key-number">4</div>
-                <div class="key-letters">GHI</div>
-            </div>
-            <div class="key" data-key="5">
-                <div class="key-number">5</div>
-                <div class="key-letters">JKL</div>
-            </div>
-            <div class="key" data-key="6">
-                <div class="key-number">6</div>
-                <div class="key-letters">MNO</div>
-            </div>
+        <div class="kb-row">
+            <div class="key" data-k="4"><div class="key-num">4</div><div class="key-text">GHI</div></div>
+            <div class="key" data-k="5"><div class="key-num">5</div><div class="key-text">JKL</div></div>
+            <div class="key" data-k="6"><div class="key-num">6</div><div class="key-text">MNO</div></div>
         </div>
-        
-        <div class="keyboard-row">
-            <div class="key" data-key="7">
-                <div class="key-number">7</div>
-                <div class="key-letters">PQRS</div>
-            </div>
-            <div class="key" data-key="8">
-                <div class="key-number">8</div>
-                <div class="key-letters">TUV</div>
-            </div>
-            <div class="key" data-key="9">
-                <div class="key-number">9</div>
-                <div class="key-letters">WXYZ</div>
-            </div>
+        <div class="kb-row">
+            <div class="key" data-k="7"><div class="key-num">7</div><div class="key-text">PQRS</div></div>
+            <div class="key" data-k="8"><div class="key-num">8</div><div class="key-text">TUV</div></div>
+            <div class="key" data-k="9"><div class="key-num">9</div><div class="key-text">WXYZ</div></div>
         </div>
-        
-        <div class="keyboard-row">
-            <div class="key" style="opacity:0; pointer-events:none;"></div>
-            <div class="key" data-key="0">
-                <div class="key-number">0</div>
-            </div>
-            <div class="key key-delete" onclick="deleteDigit()">
+        <div class="kb-row">
+            <div class="key key-empty"></div>
+            <div class="key" data-k="0"><div class="key-num">0</div></div>
+            <div class="key key-delete" onclick="del()">
                 <svg viewBox="0 0 24 24"><path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z"/></svg>
             </div>
         </div>
@@ -463,144 +495,111 @@ body {
     <div id="secret"></div>
 </div>
 
-<!-- SETTINGS -->
-<button id="settingsBtn" onclick="toggleMenu()">⚙️</button>
+<button id="settingsBtn" onclick="menu()">⚙️</button>
 <div id="menu">
-    <div class="menu-opt" onclick="changeBg()">🖼️ Changer les fonds</div>
-    <div class="menu-opt" onclick="resetApp()">🔄 Recommencer</div>
+    <div class="menu-opt" onclick="change()">Changer les fonds</div>
+    <div class="menu-opt" onclick="location.reload()">Recommencer</div>
 </div>
 
 <script>
-const CODES = {
-    "123456": "Brad Pitt",
-    "654321": "Emma Watson",
-    "111111": "Leonardo DiCaprio"
-};
-
-let input = "";
-let firstCode = null;
-let isUnlocked = false;
-let lockBgData = null;
-let homeBgData = null;
+const CODES = {"123456":"Brad Pitt","654321":"Emma Watson","111111":"Leonardo DiCaprio"};
+let inp = "", first = null, unlock = false;
+let lockBg = null, homeBg = null;
 
 const setup = document.getElementById('setup');
-const lockscreen = document.getElementById('lockscreen');
-const homescreen = document.getElementById('homescreen');
+const lock = document.getElementById('lockscreen');
+const home = document.getElementById('homescreen');
 const dots = document.querySelectorAll('.dot');
-const message = document.getElementById('message');
-const settingsBtn = document.getElementById('settingsBtn');
+const msg = document.getElementById('message');
+const btn = document.getElementById('settingsBtn');
 
-// Heure et date
 function updateTime() {
     const now = new Date();
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    document.getElementById('time').textContent = `${hours}:${minutes}`;
+    const h = String(now.getHours()).padStart(2,'0');
+    const m = String(now.getMinutes()).padStart(2,'0');
+    document.getElementById('time').textContent = `${h}:${m}`;
     
-    const days = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
-    const months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
-    const day = days[now.getDay()];
-    const date = now.getDate();
-    const month = months[now.getMonth()];
-    document.getElementById('date').textContent = `${day} ${date} ${month}`;
+    const days = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
+    const months = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+    document.getElementById('date').textContent = `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]}`;
 }
-
 setInterval(updateTime, 1000);
 updateTime();
 
-// Upload images
 document.getElementById('lockBg').onchange = e => {
-    const file = e.target.files[0];
-    if(file) {
-        const reader = new FileReader();
-        reader.onload = ev => {
-            lockBgData = ev.target.result;
-            document.getElementById('prev1').src = lockBgData;
+    const f = e.target.files[0];
+    if(f) {
+        const r = new FileReader();
+        r.onload = ev => {
+            lockBg = ev.target.result;
+            document.getElementById('prev1').src = lockBg;
             document.getElementById('prev1').classList.add('show');
-            checkReady();
+            check();
         };
-        reader.readAsDataURL(file);
+        r.readAsDataURL(f);
     }
 };
 
 document.getElementById('homeBg').onchange = e => {
-    const file = e.target.files[0];
-    if(file) {
-        const reader = new FileReader();
-        reader.onload = ev => {
-            homeBgData = ev.target.result;
-            document.getElementById('prev2').src = homeBgData;
+    const f = e.target.files[0];
+    if(f) {
+        const r = new FileReader();
+        r.onload = ev => {
+            homeBg = ev.target.result;
+            document.getElementById('prev2').src = homeBg;
             document.getElementById('prev2').classList.add('show');
-            checkReady();
+            check();
         };
-        reader.readAsDataURL(file);
+        r.readAsDataURL(f);
     }
 };
 
-function checkReady() {
-    if(lockBgData && homeBgData) {
-        document.getElementById('startBtn').classList.add('show');
-    }
+function check() {
+    if(lockBg && homeBg) document.getElementById('startBtn').classList.add('show');
 }
 
-document.getElementById('startBtn').onclick = startApp;
+document.getElementById('startBtn').onclick = start;
+function skip() { start(); }
 
-function skipSetup() {
-    startApp();
-}
-
-function startApp() {
-    if(lockBgData) {
-        lockscreen.style.setProperty('--bg-image', `url(${lockBgData})`);
-        lockscreen.classList.add('custom-bg');
+function start() {
+    if(lockBg) {
+        lock.style.setProperty('--bg-lock', `url(${lockBg})`);
+        lock.classList.add('custom');
     }
-    if(homeBgData) {
-        homescreen.style.setProperty('--home-bg', `url(${homeBgData})`);
-        homescreen.classList.add('custom-bg');
+    if(homeBg) {
+        home.style.setProperty('--bg-home', `url(${homeBg})`);
+        home.classList.add('custom');
     }
-    
     setup.style.display = 'none';
-    lockscreen.style.display = 'flex';
-    settingsBtn.classList.add('show');
+    lock.style.display = 'flex';
+    btn.classList.add('show');
 }
 
-// Keyboard
-document.querySelectorAll('.key[data-key]').forEach(key => {
-    key.onclick = () => {
-        if(isUnlocked) return;
-        const digit = key.dataset.key;
-        handleDigit(digit);
-    };
+document.querySelectorAll('.key[data-k]').forEach(k => {
+    k.onclick = () => { if(!unlock) handle(k.dataset.k); };
 });
 
-function handleDigit(d) {
-    if(input.length >= 6 || isUnlocked) return;
-    
-    input += d;
+function handle(d) {
+    if(inp.length >= 6) return;
+    inp += d;
     updateDots();
-    
     if(navigator.vibrate) navigator.vibrate(10);
     
-    console.log('Input:', input, 'FirstCode:', firstCode); // Debug
-    
-    if(input.length === 6) {
+    if(inp.length === 6) {
         setTimeout(() => {
-            if(!firstCode) {
-                console.log('Premier code mémorisé:', input);
-                firstCode = input;
-                message.textContent = "Entrer à nouveau le code";
-                setTimeout(() => reset(), 500);
-            } else if(CODES[input]) {
-                console.log('Code valide! Déverrouillage...');
-                message.textContent = "";
-                unlock(CODES[input]);
+            if(!first) {
+                first = inp;
+                msg.textContent = "Saisir à nouveau le code";
+                setTimeout(() => reset(), 600);
+            } else if(CODES[inp]) {
+                msg.textContent = "";
+                unlockScreen(CODES[inp]);
             } else {
-                console.log('Code incorrect');
-                message.textContent = "Code incorrect";
-                lockscreen.classList.add('shake');
+                msg.textContent = "Code incorrect";
+                lock.classList.add('shake');
                 setTimeout(() => {
-                    lockscreen.classList.remove('shake');
-                    message.textContent = "Entrer à nouveau le code";
+                    lock.classList.remove('shake');
+                    msg.textContent = "Saisir à nouveau le code";
                     reset();
                 }, 400);
             }
@@ -608,76 +607,53 @@ function handleDigit(d) {
     }
 }
 
-function deleteDigit() {
-    if(input.length > 0) {
-        input = input.slice(0, -1);
+function del() {
+    if(inp.length > 0) {
+        inp = inp.slice(0, -1);
         updateDots();
         if(navigator.vibrate) navigator.vibrate(10);
     }
 }
 
 function updateDots() {
-    dots.forEach((dot, i) => {
-        if(i < input.length) {
-            dot.classList.add('filled');
-        } else {
-            dot.classList.remove('filled');
-        }
+    dots.forEach((d, i) => {
+        if(i < inp.length) d.classList.add('filled');
+        else d.classList.remove('filled');
     });
 }
 
 function reset() {
-    input = "";
+    inp = "";
     updateDots();
 }
 
-function unlock(celebrity) {
-    console.log('Unlock function called for:', celebrity);
-    isUnlocked = true;
-    
-    // Afficher le secret
-    document.getElementById('secret').innerHTML = `${celebrity}<br>${firstCode}`;
-    
-    // Afficher l'écran d'accueil
-    homescreen.style.display = 'block';
-    homescreen.classList.add('show');
-    
-    // Cacher l'écran de verrouillage après l'animation
-    setTimeout(() => {
-        lockscreen.style.display = 'none';
-    }, 400);
-    
-    // Vibration de succès
-    if(navigator.vibrate) {
-        navigator.vibrate([50, 100, 50]);
-    }
-    
-    console.log('Homescreen should be visible now');
+function unlockScreen(celeb) {
+    unlock = true;
+    document.getElementById('secret').innerHTML = `${celeb}<br>${first}`;
+    home.style.display = 'block';
+    home.classList.add('show');
+    setTimeout(() => { lock.style.display = 'none'; }, 350);
+    if(navigator.vibrate) navigator.vibrate([50,100,50]);
 }
 
-// Settings
-function toggleMenu() {
+function menu() {
     document.getElementById('menu').classList.toggle('show');
 }
 
-function changeBg() {
-    isUnlocked = false;
-    firstCode = null;
-    input = "";
-    message.textContent = "";
-    homescreen.classList.remove('show');
-    lockscreen.style.display = 'none';
+function change() {
+    unlock = false;
+    first = null;
+    inp = "";
+    msg.textContent = "Saisir le code";
+    home.classList.remove('show');
+    home.style.display = 'none';
+    lock.style.display = 'none';
     setup.style.display = 'flex';
-    settingsBtn.classList.remove('show');
+    btn.classList.remove('show');
     document.getElementById('menu').classList.remove('show');
 }
 
-function resetApp() {
-    location.reload();
-}
-
-// Close menu on click outside
-document.addEventListener('click', (e) => {
+document.addEventListener('click', e => {
     if(!e.target.closest('#settingsBtn') && !e.target.closest('#menu')) {
         document.getElementById('menu').classList.remove('show');
     }
