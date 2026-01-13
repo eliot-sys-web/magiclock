@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content=" ">
 <style>
 * {
     margin: 0;
@@ -16,243 +17,87 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
     overflow: hidden;
     background: #000;
     width: 100vw;
     height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
 }
 
-/* LOCKSCREEN */
+/* LOCKSCREEN - Screenshot en fond */
 #lockscreen {
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+    width: 100vw;
+    height: 100vh;
     background-size: cover;
     background-position: center;
+    background-repeat: no-repeat;
     display: flex;
     flex-direction: column;
-    position: relative;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #000;
 }
 
 #lockscreen.custom {
     background-image: var(--bg-lock);
 }
 
-/* STATUS BAR */
-.status-bar {
+/* Overlay pour les ronds dynamiques */
+#dots-overlay {
+    position: absolute;
+    top: 24.5%; /* Ajustable selon ton écran */
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 24px 0;
-    height: 48px;
-    color: white;
-    font-size: 15px;
-    font-weight: 600;
-}
-
-.status-left {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-}
-
-.status-icon {
-    font-size: 13px;
-}
-
-/* TIME */
-.lock-time {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    margin-top: 80px;
-}
-
-.time-display {
-    font-size: 80px;
-    font-weight: 200;
-    color: white;
-    letter-spacing: -3px;
-    line-height: 1;
-}
-
-.date-display {
-    font-size: 18px;
-    font-weight: 600;
-    color: white;
-    margin-top: 4px;
-}
-
-/* NOTIFICATION AREA */
-.notification {
-    display: none;
-    margin: 0 20px;
-    padding: 16px;
-    background: rgba(255,255,255,0.08);
-    backdrop-filter: blur(40px) saturate(180%);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
-    border-radius: 20px;
-    border: 0.5px solid rgba(255,255,255,0.15);
-    color: white;
-}
-
-/* CODE AREA */
-.code-area {
-    margin: auto 0;
-    padding: 40px 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-#message {
-    color: white;
-    font-size: 15px;
-    font-weight: 400;
-    margin-bottom: 16px;
-    height: 24px;
-    text-align: center;
-}
-
-#dots {
-    display: flex;
-    gap: 18px;
-    margin-bottom: 24px;
+    gap: 17px;
+    z-index: 10;
 }
 
 .dot {
-    width: 14px;
-    height: 14px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
-    background: rgba(255,255,255,0.3);
+    border: 2px solid rgba(255,255,255,0);
+    background: transparent;
     transition: all 0.15s ease;
 }
 
 .dot.filled {
     background: white;
-    transform: scale(1.15);
+    border-color: white;
 }
 
-/* KEYBOARD */
-.keyboard {
-    padding: 0 12px 36px;
-}
-
-.kb-row {
-    display: flex;
-    justify-content: center;
-    gap: 30px;
-    margin-bottom: 16px;
-}
-
-.key {
-    width: 75px;
-    height: 75px;
+/* Zones tactiles invisibles sur le clavier */
+.touch-zone {
+    position: absolute;
     border-radius: 50%;
-    background: rgba(255,255,255,0.1);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 0.5px solid rgba(255,255,255,0.15);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.1s;
-    position: relative;
-}
-
-.key:active {
-    background: rgba(255,255,255,0.25);
-    transform: scale(0.92);
-}
-
-.key-num {
-    font-size: 32px;
-    font-weight: 300;
-    color: white;
-    line-height: 1;
-}
-
-.key-text {
-    font-size: 9px;
-    font-weight: 500;
-    color: rgba(255,255,255,0.4);
-    letter-spacing: 3px;
-    margin-top: 2px;
-    text-transform: uppercase;
-}
-
-.key-empty {
-    opacity: 0;
-    pointer-events: none;
-}
-
-.key-delete {
-    background: rgba(0,0,0,0.2);
-    backdrop-filter: blur(20px);
-}
-
-.key-delete svg {
-    width: 26px;
-    height: 26px;
-    fill: white;
-}
-
-/* BOTTOM BAR */
-.bottom-bar {
-    display: flex;
-    justify-content: space-between;
-    padding: 0 40px 28px;
-    align-items: center;
-}
-
-.bottom-action {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.12);
-    backdrop-filter: blur(20px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
+    z-index: 5;
     cursor: pointer;
 }
 
-.bottom-action:active {
-    background: rgba(255,255,255,0.2);
-}
-
-.bottom-text {
-    color: white;
-    font-size: 13px;
-    font-weight: 500;
-    margin-top: 6px;
-}
-
-.swipe-hint {
-    text-align: center;
-    color: rgba(255,255,255,0.6);
-    font-size: 16px;
-    margin-top: 12px;
+/* Pour debug : afficher les zones */
+body.debug .touch-zone {
+    background: rgba(255,0,0,0.3);
+    border: 2px solid red;
 }
 
 /* HOMESCREEN */
 #homescreen {
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+    width: 100vw;
+    height: 100vh;
     background-size: cover;
     background-position: center;
+    background-repeat: no-repeat;
     display: none;
     position: fixed;
     top: 0;
     left: 0;
     z-index: 200;
+    background-color: #000;
 }
 
 #homescreen.custom {
@@ -261,12 +106,6 @@ body {
 
 #homescreen.show {
     display: block;
-    animation: slideUp 0.35s cubic-bezier(0.36, 0, 0.66, 0);
-}
-
-@keyframes slideUp {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
 }
 
 #secret {
@@ -290,13 +129,17 @@ body {
     justify-content: center;
     padding: 20px;
     overflow-y: auto;
+    position: fixed;
+    top: 0;
+    left: 0;
 }
 
 #setup h1 {
-    font-size: 28px;
+    font-size: 26px;
     color: white;
-    margin-bottom: 40px;
+    margin-bottom: 30px;
     font-weight: 600;
+    text-align: center;
 }
 
 .upload-box {
@@ -354,7 +197,24 @@ body {
 
 #startBtn.show { display: inline-block; }
 
-.skip { color: rgba(255,255,255,0.8); margin-top: 16px; cursor: pointer; font-size: 15px; }
+.skip { 
+    color: rgba(255,255,255,0.8); 
+    margin-top: 16px; 
+    cursor: pointer; 
+    font-size: 15px;
+    text-decoration: underline;
+}
+
+.info {
+    background: rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 20px;
+    max-width: 340px;
+    color: white;
+    font-size: 13px;
+    line-height: 1.5;
+}
 
 /* SETTINGS */
 #settingsBtn {
@@ -364,9 +224,9 @@ body {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: rgba(0,0,0,0.25);
+    background: rgba(0,0,0,0.4);
     backdrop-filter: blur(20px);
-    border: 0.5px solid rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.2);
     color: white;
     font-size: 18px;
     display: none;
@@ -405,89 +265,70 @@ body {
 .menu-opt:active { background: rgba(255,255,255,0.1); }
 
 @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-12px); }
-    75% { transform: translateX(12px); }
+    0%, 100% { transform: translateX(-50%); }
+    25% { transform: translateX(calc(-50% - 10px)); }
+    75% { transform: translateX(calc(-50% + 10px)); }
 }
 
-.shake { animation: shake 0.35s; }
+#dots-overlay.shake {
+    animation: shake 0.35s;
+}
 </style>
 </head>
 <body>
 
 <!-- SETUP -->
 <div id="setup">
-    <h1>📱 iPhone Lock Screen</h1>
+    <h1>📱 iPhone Lock Screen<br>Overlay Method</h1>
     
     <div class="upload-box">
-        <h3>Fond d'écran verrouillé</h3>
+        <h3>Screenshot écran verrouillé</h3>
         <label class="upload-label" for="lockBg">Choisir</label>
         <input type="file" id="lockBg" class="upload-input" accept="image/*">
         <img id="prev1" class="preview">
     </div>
     
     <div class="upload-box">
-        <h3>Fond d'écran accueil</h3>
+        <h3>Screenshot écran d'accueil</h3>
         <label class="upload-label" for="homeBg">Choisir</label>
         <input type="file" id="homeBg" class="upload-input" accept="image/*">
         <img id="prev2" class="preview">
     </div>
     
     <button id="startBtn">Démarrer</button>
-    <div class="skip" onclick="skip()">Passer</div>
+    
+    <div class="info">
+        💡 <strong>Astuce :</strong> Les ronds se superposeront à ton screenshot. Utilise les réglages pour ajuster leur position si besoin.
+    </div>
 </div>
 
 <!-- LOCKSCREEN -->
 <div id="lockscreen" style="display:none;">
-    <div class="status-bar">
-        <div class="status-left">
-            <span class="status-icon">📶</span>
-            <span class="status-icon">📡</span>
-        </div>
-        <div>🔋</div>
+    <!-- Ronds dynamiques superposés -->
+    <div id="dots-overlay">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
     </div>
     
-    <div class="lock-time">
-        <div class="time-display" id="time">12:00</div>
-        <div class="date-display" id="date">lundi 13 janvier</div>
-    </div>
+    <!-- Zones tactiles invisibles (positionnées sur les touches du screenshot) -->
+    <!-- Basé sur ton screenshot iPhone 13 -->
+    <div class="touch-zone" data-k="1" style="left:14%; top:36%; width:22%; height:9%;"></div>
+    <div class="touch-zone" data-k="2" style="left:39%; top:36%; width:22%; height:9%;"></div>
+    <div class="touch-zone" data-k="3" style="left:64%; top:36%; width:22%; height:9%;"></div>
     
-    <div class="code-area">
-        <div id="message">Saisir le code</div>
-        <div id="dots">
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-        </div>
-    </div>
+    <div class="touch-zone" data-k="4" style="left:14%; top:47%; width:22%; height:9%;"></div>
+    <div class="touch-zone" data-k="5" style="left:39%; top:47%; width:22%; height:9%;"></div>
+    <div class="touch-zone" data-k="6" style="left:64%; top:47%; width:22%; height:9%;"></div>
     
-    <div class="keyboard">
-        <div class="kb-row">
-            <div class="key" data-k="1"><div class="key-num">1</div></div>
-            <div class="key" data-k="2"><div class="key-num">2</div><div class="key-text">ABC</div></div>
-            <div class="key" data-k="3"><div class="key-num">3</div><div class="key-text">DEF</div></div>
-        </div>
-        <div class="kb-row">
-            <div class="key" data-k="4"><div class="key-num">4</div><div class="key-text">GHI</div></div>
-            <div class="key" data-k="5"><div class="key-num">5</div><div class="key-text">JKL</div></div>
-            <div class="key" data-k="6"><div class="key-num">6</div><div class="key-text">MNO</div></div>
-        </div>
-        <div class="kb-row">
-            <div class="key" data-k="7"><div class="key-num">7</div><div class="key-text">PQRS</div></div>
-            <div class="key" data-k="8"><div class="key-num">8</div><div class="key-text">TUV</div></div>
-            <div class="key" data-k="9"><div class="key-num">9</div><div class="key-text">WXYZ</div></div>
-        </div>
-        <div class="kb-row">
-            <div class="key key-empty"></div>
-            <div class="key" data-k="0"><div class="key-num">0</div></div>
-            <div class="key key-delete" onclick="del()">
-                <svg viewBox="0 0 24 24"><path d="M22 3H7c-.69 0-1.23.35-1.59.88L0 12l5.41 8.11c.36.53.9.89 1.59.89h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3 12.59L17.59 17 14 13.41 10.41 17 9 15.59 12.59 12 9 8.41 10.41 7 14 10.59 17.59 7 19 8.41 15.41 12 19 15.59z"/></svg>
-            </div>
-        </div>
-    </div>
+    <div class="touch-zone" data-k="7" style="left:14%; top:58%; width:22%; height:9%;"></div>
+    <div class="touch-zone" data-k="8" style="left:39%; top:58%; width:22%; height:9%;"></div>
+    <div class="touch-zone" data-k="9" style="left:64%; top:58%; width:22%; height:9%;"></div>
+    
+    <div class="touch-zone" data-k="0" style="left:39%; top:69%; width:22%; height:9%;"></div>
 </div>
 
 <!-- HOMESCREEN -->
@@ -497,8 +338,10 @@ body {
 
 <button id="settingsBtn" onclick="menu()">⚙️</button>
 <div id="menu">
-    <div class="menu-opt" onclick="change()">Changer les fonds</div>
-    <div class="menu-opt" onclick="location.reload()">Recommencer</div>
+    <div class="menu-opt" onclick="toggleDebug()">👁️ Voir les zones</div>
+    <div class="menu-opt" onclick="adjustDots()">⚪ Ajuster les ronds</div>
+    <div class="menu-opt" onclick="change()">🖼️ Changer screenshots</div>
+    <div class="menu-opt" onclick="location.reload()">🔄 Recommencer</div>
 </div>
 
 <script>
@@ -509,22 +352,9 @@ let lockBg = null, homeBg = null;
 const setup = document.getElementById('setup');
 const lock = document.getElementById('lockscreen');
 const home = document.getElementById('homescreen');
+const dotsOverlay = document.getElementById('dots-overlay');
 const dots = document.querySelectorAll('.dot');
-const msg = document.getElementById('message');
 const btn = document.getElementById('settingsBtn');
-
-function updateTime() {
-    const now = new Date();
-    const h = String(now.getHours()).padStart(2,'0');
-    const m = String(now.getMinutes()).padStart(2,'0');
-    document.getElementById('time').textContent = `${h}:${m}`;
-    
-    const days = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
-    const months = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
-    document.getElementById('date').textContent = `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]}`;
-}
-setInterval(updateTime, 1000);
-updateTime();
 
 document.getElementById('lockBg').onchange = e => {
     const f = e.target.files[0];
@@ -559,7 +389,6 @@ function check() {
 }
 
 document.getElementById('startBtn').onclick = start;
-function skip() { start(); }
 
 function start() {
     if(lockBg) {
@@ -575,8 +404,9 @@ function start() {
     btn.classList.add('show');
 }
 
-document.querySelectorAll('.key[data-k]').forEach(k => {
-    k.onclick = () => { if(!unlock) handle(k.dataset.k); };
+// Zones tactiles
+document.querySelectorAll('.touch-zone').forEach(z => {
+    z.onclick = () => { if(!unlock) handle(z.dataset.k); };
 });
 
 function handle(d) {
@@ -589,29 +419,17 @@ function handle(d) {
         setTimeout(() => {
             if(!first) {
                 first = inp;
-                msg.textContent = "Saisir à nouveau le code";
                 setTimeout(() => reset(), 600);
             } else if(CODES[inp]) {
-                msg.textContent = "";
                 unlockScreen(CODES[inp]);
             } else {
-                msg.textContent = "Code incorrect";
-                lock.classList.add('shake');
+                dotsOverlay.classList.add('shake');
                 setTimeout(() => {
-                    lock.classList.remove('shake');
-                    msg.textContent = "Saisir à nouveau le code";
+                    dotsOverlay.classList.remove('shake');
                     reset();
                 }, 400);
             }
         }, 300);
-    }
-}
-
-function del() {
-    if(inp.length > 0) {
-        inp = inp.slice(0, -1);
-        updateDots();
-        if(navigator.vibrate) navigator.vibrate(10);
     }
 }
 
@@ -632,19 +450,86 @@ function unlockScreen(celeb) {
     document.getElementById('secret').innerHTML = `${celeb}<br>${first}`;
     home.style.display = 'block';
     home.classList.add('show');
-    setTimeout(() => { lock.style.display = 'none'; }, 350);
+    lock.style.display = 'none';
     if(navigator.vibrate) navigator.vibrate([50,100,50]);
 }
 
+// Settings
 function menu() {
     document.getElementById('menu').classList.toggle('show');
 }
+
+function toggleDebug() {
+    document.body.classList.toggle('debug');
+    document.getElementById('menu').classList.remove('show');
+}
+
+let adjustMode = false;
+let draggedDot = null;
+
+function adjustDots() {
+    adjustMode = !adjustMode;
+    if(adjustMode) {
+        dotsOverlay.style.background = 'rgba(255,255,0,0.2)';
+        dotsOverlay.style.padding = '10px';
+        dotsOverlay.style.border = '2px dashed orange';
+        dotsOverlay.style.cursor = 'move';
+        
+        // Rendre draggable
+        dotsOverlay.onmousedown = startDrag;
+        dotsOverlay.ontouchstart = startDrag;
+    } else {
+        dotsOverlay.style.background = '';
+        dotsOverlay.style.padding = '';
+        dotsOverlay.style.border = '';
+        dotsOverlay.style.cursor = '';
+        dotsOverlay.onmousedown = null;
+        dotsOverlay.ontouchstart = null;
+    }
+    document.getElementById('menu').classList.remove('show');
+}
+
+function startDrag(e) {
+    if(!adjustMode) return;
+    draggedDot = dotsOverlay;
+    const isTouch = e.type === 'touchstart';
+    const clientX = isTouch ? e.touches[0].clientX : e.clientX;
+    const clientY = isTouch ? e.touches[0].clientY : e.clientY;
+    
+    const rect = dotsOverlay.getBoundingClientRect();
+    dotsOverlay._offsetX = clientX - rect.left;
+    dotsOverlay._offsetY = clientY - rect.top;
+    
+    e.preventDefault();
+}
+
+document.addEventListener('mousemove', doDrag);
+document.addEventListener('touchmove', doDrag);
+
+function doDrag(e) {
+    if(!draggedDot) return;
+    const isTouch = e.type === 'touchmove';
+    const clientX = isTouch ? e.touches[0].clientX : e.clientX;
+    const clientY = isTouch ? e.touches[0].clientY : e.clientY;
+    
+    const lockRect = lock.getBoundingClientRect();
+    const newLeft = ((clientX - lockRect.left - dotsOverlay._offsetX) / lockRect.width) * 100;
+    const newTop = ((clientY - lockRect.top - dotsOverlay._offsetY) / lockRect.height) * 100;
+    
+    dotsOverlay.style.left = newLeft + '%';
+    dotsOverlay.style.top = newTop + '%';
+    dotsOverlay.style.transform = 'none';
+    
+    e.preventDefault();
+}
+
+document.addEventListener('mouseup', () => { draggedDot = null; });
+document.addEventListener('touchend', () => { draggedDot = null; });
 
 function change() {
     unlock = false;
     first = null;
     inp = "";
-    msg.textContent = "Saisir le code";
     home.classList.remove('show');
     home.style.display = 'none';
     lock.style.display = 'none';
