@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="Lockscreen">
 
 <!-- Icones iOS (préférer 180x180) -->
-<link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180.png">
+<link rel="apple-touch-icon" sizes="180x180" href="Lock180.png">
 
 <!-- Manifest PWA pour Android/Chrome -->
 <link rel="manifest" href="/manifest.json">
