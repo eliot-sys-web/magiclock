@@ -13,7 +13,6 @@
 <!-- Apple Touch Icons -->
 <link rel="apple-touch-icon" href="/magiclock/Lock180.png">
 <link rel="manifest" href="/magiclock/manifest.json">
-
 <style>
 * {
     margin: 0;
@@ -56,23 +55,24 @@ body {
     background-image: var(--bg-lock);
 }
 
-/* Overlay pour les ronds dynamiques - EXACTEMENT comme ton screenshot */
+/* Overlay pour les ronds dynamiques - Calculé depuis ton screenshot */
 #dots-overlay {
     position: absolute;
     display: flex;
     z-index: 10;
-    /* Position calculée depuis ton screenshot iPhone 13 (1170x2532) */
-    top: 24.2%;
+    /* Position calculée depuis "Saisissez le code" qui est à ~18% du haut */
+    /* Les cercles sont ~6% en dessous du texte */
+    top: 24%;
     left: 50%;
     transform: translateX(-50%);
-    gap: 17px; /* Espacement exact entre les cercles */
+    gap: 19px; /* Espacement légèrement augmenté */
 }
 
 .dot {
-    width: 18px;
-    height: 18px;
+    width: 19px; /* Légèrement plus grand */
+    height: 19px;
     border-radius: 50%;
-    border: 1px solid rgba(255,255,255,0.3); /* Bordure fine comme sur ton screenshot */
+    border: 1px solid rgba(255,255,255,0.35);
     background: transparent;
     transition: all 0.15s ease;
 }
@@ -99,8 +99,8 @@ body.debug .touch-zone {
 
 /* HOMESCREEN */
 #homescreen {
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -108,6 +108,8 @@ body.debug .touch-zone {
     position: fixed;
     top: 0;
     left: 0;
+    right: 0;
+    bottom: 0;
     z-index: 200;
 }
 
@@ -286,8 +288,22 @@ body.debug .touch-zone {
     75% { transform: translateX(calc(-50% + 10px)); }
 }
 
+/* Animation shake désactivée */
 #dots-overlay.shake {
-    animation: shake 0.35s;
+    /* Pas d'animation */
+}
+
+/* Mode ajustement individuel des cercles */
+body.adjust-individual .dot {
+    cursor: move;
+    border: 2px solid orange !important;
+    background: rgba(255,165,0,0.2) !important;
+}
+
+body.adjust-individual .dot.dragging {
+    border-color: red !important;
+    background: rgba(255,0,0,0.3) !important;
+    z-index: 100;
 }
 </style>
 </head>
@@ -355,7 +371,8 @@ body.debug .touch-zone {
 <button id="settingsBtn" onclick="menu()">⚙️</button>
 <div id="menu">
     <div class="menu-opt" onclick="toggleDebug()">👁️ Voir les zones</div>
-    <div class="menu-opt" onclick="adjustDots()">⚪ Ajuster position</div>
+    <div class="menu-opt" onclick="adjustDots()">⚪ Ajuster position globale</div>
+    <div class="menu-opt" onclick="adjustIndividual()">⚫ Ajuster cercles individuels</div>
     <div class="menu-opt" onclick="adjustGap()">↔️ Ajuster espacement</div>
     <div class="menu-opt" onclick="change()">🖼️ Changer screenshots</div>
     <div class="menu-opt" onclick="resetDots()">↺ Reset positions</div>
@@ -378,6 +395,14 @@ const btn = document.getElementById('settingsBtn');
 
 // Charger les images sauvegardées au démarrage
 window.addEventListener('load', function() {
+    // Check si reset demandé via URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if(urlParams.get('reset') === '1') {
+        localStorage.clear();
+        window.location.href = window.location.pathname;
+        return;
+    }
+    
     const savedLock = localStorage.getItem('lockscreen_bg');
     const savedHome = localStorage.getItem('homescreen_bg');
     
@@ -450,6 +475,19 @@ function start() {
         dotsOverlay.style.gap = savedGap;
     }
     
+    // Charger les positions individuelles sauvegardées
+    const savedIndividual = localStorage.getItem('dots_individual_positions');
+    if(savedIndividual) {
+        const positions = JSON.parse(savedIndividual);
+        dots.forEach((dot, i) => {
+            if(positions[i]) {
+                dot.style.transform = `translate(${positions[i].x}px, ${positions[i].y}px)`;
+                dot._offsetX = positions[i].x;
+                dot._offsetY = positions[i].y;
+            }
+        });
+    }
+    
     // Appui long pour afficher/masquer settings
     lock.addEventListener('mousedown', startLongPress);
     lock.addEventListener('touchstart', startLongPress, {passive: true});
@@ -518,9 +556,8 @@ function handle(d) {
             } else if(CODES[inp]) {
                 unlockScreen(CODES[inp]);
             } else {
-                dotsOverlay.classList.add('shake');
+                // Pas d'animation shake, juste reset
                 setTimeout(() => {
-                    dotsOverlay.classList.remove('shake');
                     reset();
                 }, 400);
             }
@@ -561,7 +598,124 @@ function toggleDebug() {
 
 let adjustMode = false;
 let adjustGapMode = false;
+let adjustIndividualMode = false;
 let draggedDot = null;
+let draggedDotIndex = -1;
+
+function adjustIndividual() {
+    adjustIndividualMode = !adjustIndividualMode;
+    
+    if(adjustIndividualMode) {
+        adjustMode = false;
+        document.body.classList.add('adjust-individual');
+        
+        // Charger les positions sauvegardées
+        const savedIndividual = localStorage.getItem('dots_individual_positions');
+        if(savedIndividual) {
+            const positions = JSON.parse(savedIndividual);
+            dots.forEach((dot, i) => {
+                if(positions[i]) {
+                    dot.style.transform = `translate(${positions[i].x}px, ${positions[i].y}px)`;
+                    dot._offsetX = positions[i].x;
+                    dot._offsetY = positions[i].y;
+                }
+            });
+        }
+        
+        // Activer le drag sur chaque cercle
+        dots.forEach((dot, index) => {
+            dot._offsetX = dot._offsetX || 0;
+            dot._offsetY = dot._offsetY || 0;
+            
+            dot.onmousedown = (e) => startDragDot(e, dot, index);
+            dot.ontouchstart = (e) => startDragDot(e, dot, index);
+        });
+    } else {
+        document.body.classList.remove('adjust-individual');
+        
+        // Sauvegarder les positions
+        const positions = {};
+        dots.forEach((dot, i) => {
+            positions[i] = {
+                x: dot._offsetX || 0,
+                y: dot._offsetY || 0
+            };
+        });
+        localStorage.setItem('dots_individual_positions', JSON.stringify(positions));
+        
+        // Désactiver le drag
+        dots.forEach(dot => {
+            dot.onmousedown = null;
+            dot.ontouchstart = null;
+        });
+    }
+    
+    document.getElementById('menu').classList.remove('show');
+}
+
+function startDragDot(e, dot, index) {
+    if(!adjustIndividualMode) return;
+    
+    draggedDot = dot;
+    draggedDotIndex = index;
+    dot.classList.add('dragging');
+    
+    const isTouch = e.type === 'touchstart';
+    const clientX = isTouch ? e.touches[0].clientX : e.clientX;
+    const clientY = isTouch ? e.touches[0].clientY : e.clientY;
+    
+    const rect = dot.getBoundingClientRect();
+    dot._startX = clientX;
+    dot._startY = clientY;
+    dot._initialOffsetX = dot._offsetX || 0;
+    dot._initialOffsetY = dot._offsetY || 0;
+    
+    e.preventDefault();
+    e.stopPropagation();
+}
+
+document.addEventListener('mousemove', (e) => {
+    if(draggedDot && adjustIndividualMode) {
+        const deltaX = e.clientX - draggedDot._startX;
+        const deltaY = e.clientY - draggedDot._startY;
+        
+        draggedDot._offsetX = draggedDot._initialOffsetX + deltaX;
+        draggedDot._offsetY = draggedDot._initialOffsetY + deltaY;
+        
+        draggedDot.style.transform = `translate(${draggedDot._offsetX}px, ${draggedDot._offsetY}px)`;
+        e.preventDefault();
+    }
+});
+
+document.addEventListener('touchmove', (e) => {
+    if(draggedDot && adjustIndividualMode) {
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - draggedDot._startX;
+        const deltaY = touch.clientY - draggedDot._startY;
+        
+        draggedDot._offsetX = draggedDot._initialOffsetX + deltaX;
+        draggedDot._offsetY = draggedDot._initialOffsetY + deltaY;
+        
+        draggedDot.style.transform = `translate(${draggedDot._offsetX}px, ${draggedDot._offsetY}px)`;
+        e.preventDefault();
+    }
+}, {passive: false});
+
+document.addEventListener('mouseup', () => {
+    if(draggedDot) {
+        draggedDot.classList.remove('dragging');
+        draggedDot = null;
+        draggedDotIndex = -1;
+    }
+});
+
+document.addEventListener('touchend', () => {
+    if(draggedDot) {
+        draggedDot.classList.remove('dragging');
+        draggedDot = null;
+        draggedDotIndex = -1;
+    }
+});
 
 function adjustDots() {
     adjustMode = !adjustMode;
@@ -620,12 +774,21 @@ function adjustGap() {
 function resetDots() {
     localStorage.removeItem('dots_position');
     localStorage.removeItem('dots_gap');
-    dotsOverlay.style.top = '24.2%';
+    localStorage.removeItem('dots_individual_positions');
+    dotsOverlay.style.top = '24%';
     dotsOverlay.style.left = '50%';
     dotsOverlay.style.transform = 'translateX(-50%)';
-    dotsOverlay.style.gap = '17px';
+    dotsOverlay.style.gap = '19px';
+    
+    // Reset positions individuelles
+    dots.forEach(dot => {
+        dot.style.transform = '';
+        dot._offsetX = 0;
+        dot._offsetY = 0;
+    });
+    
     document.getElementById('menu').classList.remove('show');
-    alert('Position et espacement réinitialisés !');
+    alert('Toutes les positions réinitialisées !');
 }
 
 function startDrag(e) {
