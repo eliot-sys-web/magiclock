@@ -379,12 +379,7 @@ body.adjust-individual .dot.dragging {
     <div class="menu-opt" onclick="location.reload()">🔄 Recommencer</div>
 </div>
 
-<script>
-const CODES = {"123456":"Brad Pitt","654321":"Emma Watson","111111":"Leonardo DiCaprio"};
-let inp = "", first = null, unlock = false;
-let lockBg = null, homeBg = null;
-let longPressTimer = null;
-let settingsVisible = false;
+
 
 <script>
 const CODES = {"123456":"Brad Pitt","654321":"Emma Watson","111111":"Leonardo DiCaprio"};
@@ -445,6 +440,7 @@ function start() {
     lock.style.display = 'flex';
     
     // Charger la position et l'espacement sauvegardés
+   
     const savedPosition = localStorage.getItem('dots_position');
     if(savedPosition) {
         const pos = JSON.parse(savedPosition);
