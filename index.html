@@ -2,264 +2,409 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>iPhone Lock Screen</title>
-
-<!-- Viewport pour mobile -->
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-
-<!-- Mode plein écran iOS -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Lockscreen">
-
-<!-- Icône iOS écran d'accueil (180x180 px recommandé) -->
+<meta name="theme-color" content="#000000">
 <link rel="apple-touch-icon" href="/iphone-lock/Lock180.png">
-
-<!-- Manifest PWA pour Android/Chrome -->
 <link rel="manifest" href="/iphone-lock/manifest.json">
-
+<title>iPhone Lock Screen</title>
 <style>
+:root {
+    --dot-size: 18px;
+    --dot-gap: 17px;
+    --dot-border: 2px;
+    --dot-color: white;
+    --dot-transition: all 0.15s ease;
+}
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
-}
-
-html, body {
-    width: 100%;
-    height: 100%;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     overflow: hidden;
     background: #000;
-}
-
-/* ECRANS PLEIN ECRAN */
-
-#setup,
-#lockscreen,
-#homescreen {
-    position: fixed;
-    inset: 0;
-    width: 100%;
+    width: 100vw;
     height: 100vh;
-    background-color: #000;
+    position: fixed;
+    top: 0;
+    left: 0;
+    color: white;
+    touch-action: manipulation;
+}
+
+/* Base Screen Styles */
+.screen {
+    width: 100vw;
+    height: 100vh;
+    background-size: cover;
+    background-position: center;
     background-repeat: no-repeat;
-    background-position: top center;
-    background-size: 100% 100%;  /* colle exactement au screenshot */
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #000;
+    will-change: transform;
 }
 
-@supports (height: 100dvh) {
-    #setup,
-    #lockscreen,
-    #homescreen {
-        height: 100dvh;
-    }
+/* Lockscreen Specific */
+#lockscreen {
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
 }
 
-/* SETUP : CHOIX DES CAPTURES */
+#lockscreen.custom {
+    background-image: var(--bg-lock);
+}
 
+/* Dots Overlay */
+#dots-overlay {
+    position: absolute;
+    top: 24.5%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: var(--dot-gap);
+    z-index: 10;
+    pointer-events: none;
+}
+
+.dot {
+    width: var(--dot-size);
+    height: var(--dot-size);
+    border-radius: 50%;
+    border: var(--dot-border) solid rgba(255,255,255,0);
+    background: transparent;
+    transition: var(--dot-transition);
+    position: relative;
+}
+
+.dot.filled {
+    background: var(--dot-color);
+    border-color: var(--dot-color);
+}
+
+/* Touch Zones */
+.touch-zone {
+    position: absolute;
+    border-radius: 50%;
+    z-index: 5;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+body.debug .touch-zone {
+    background: rgba(255,0,0,0.3);
+    border: 2px solid red;
+    opacity: 1;
+}
+
+/* Homescreen */
+#homescreen {
+    display: none;
+    z-index: 200;
+}
+
+#homescreen.custom {
+    background-image: var(--bg-home);
+}
+
+#homescreen.show {
+    display: block;
+}
+
+#secret {
+    position: absolute;
+    bottom: 30px;
+    right: 20px;
+    color: rgba(255,255,255,0.25);
+    font-size: 10px;
+    text-align: right;
+    line-height: 1.5;
+    font-family: -apple-system, sans-serif;
+    text-shadow: 0 0 2px rgba(0,0,0,0.5);
+}
+
+/* Setup Screen */
 #setup {
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: #fff;
     padding: 20px;
-    text-align: center;
-    gap: 20px;
+    overflow-y: auto;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 300;
 }
 
-#setup label {
-    display: block;
-    margin-bottom: 8px;
+#setup h1 {
+    font-size: 26px;
+    color: white;
+    margin-bottom: 30px;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.3;
+}
+
+.upload-box {
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 16px;
+    width: 100%;
+    max-width: 340px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.upload-box h3 {
+    color: white;
+    font-size: 16px;
+    margin-bottom: 12px;
     font-weight: 600;
 }
 
-#setup input[type=file] {
+.upload-label {
+    display: inline-block;
+    background: white;
+    color: #667eea;
+    padding: 12px 28px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.upload-label:active {
+    transform: scale(0.98);
+}
+
+.upload-input {
+    display: none;
+}
+
+.preview {
+    margin-top: 12px;
+    max-width: 100%;
+    max-height: 120px;
+    border-radius: 10px;
+    display: none;
+    object-fit: cover;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.preview.show {
     display: block;
-    margin: 0 auto 10px auto;
 }
 
 #startBtn {
-    padding: 10px 20px;
-    border-radius: 999px;
-    border: none;
-    background: #fff;
-    color: #000;
-    font-weight: 600;
-    font-size: 16px;
-    opacity: .3;
-}
-
-#startBtn.enabled {
-    opacity: 1;
-}
-
-/* LOCKSCREEN */
-
-#lockscreen {
-    display: none;
-    z-index: 100;
-    background-image: var(--bg-lock);
-}
-
-/* Bouton réglages */
-
-#settingsBtn {
-    position: absolute;
-    top: 18px;
-    right: 18px;
-    z-index: 30;
-    background: rgba(0,0,0,0.5);
-    color: #fff;
-    border-radius: 999px;
-    border: none;
-    padding: 6px 10px;
-    font-size: 16px;
-}
-
-/* RANGÉE DE RONDS (code) */
-
-#dots-overlay {
-    position: absolute;
-    top: 26%;                 /* ajuste légèrement si besoin 24–28% */
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 2.1vh;               /* espacement relatif à la hauteur */
-    z-index: 10;
-}
-
-.dot {
-    width: 1.9vh;
-    height: 1.9vh;
-    border-radius: 50%;
-    border: 0.22vh solid rgba(255,255,255,0.35);
-    background: transparent;
-    transition: all 0.15s ease;
-}
-
-.dot.filled {
     background: white;
-    border-color: white;
-}
-
-/* ZONES TACTILES INVISIBLES (clavier) */
-
-.touch-zone {
-    position: absolute;
-    width: 8.2vh;
-    height: 8.2vh;
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 5;
+    color: #667eea;
+    border: none;
+    padding: 16px 48px;
+    border-radius: 14px;
+    font-size: 17px;
+    font-weight: 600;
     cursor: pointer;
-}
-
-/* Pour debug : afficher les zones */
-body.debug .touch-zone {
-    background: rgba(255,0,0,0.25);
-    border: 2px solid red;
-}
-
-/* HOMESCREEN */
-
-#homescreen {
+    margin-top: 24px;
     display: none;
-    z-index: 200;
-    background-image: var(--bg-home);
+    transition: all 0.2s;
 }
 
-/* Zone du texte révélant le code / célébrité */
+#startBtn.show {
+    display: inline-block;
+}
 
-#secret {
-    position: absolute;
-    bottom: 18%;
-    left: 8%;
-    right: 8%;
-    color: #fff;
-    font-size: 16px;
-    line-height: 1.4;
-    text-shadow: 0 0 4px #000;
-    background: rgba(0,0,0,0.25);
-    padding: 10px 12px;
+#startBtn:active {
+    transform: scale(0.98);
+}
+
+.skip {
+    color: rgba(255,255,255,0.8);
+    margin-top: 16px;
+    cursor: pointer;
+    font-size: 15px;
+    text-decoration: underline;
+}
+
+.info {
+    background: rgba(255,255,255,0.1);
     border-radius: 12px;
+    padding: 16px;
+    margin-top: 20px;
+    max-width: 340px;
+    color: white;
+    font-size: 13px;
+    line-height: 1.5;
 }
 
-/* MENU REGLAGES SIMPLE */
+/* Settings */
+#settingsBtn {
+    position: fixed;
+    top: 60px;
+    left: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    font-size: 18px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 300;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#settingsBtn.show {
+    display: flex;
+}
+
+#settingsBtn:active {
+    transform: scale(0.95);
+}
 
 #menu {
-    position: absolute;
-    top: 52px;
-    right: 18px;
-    background: rgba(0,0,0,0.85);
-    color: #fff;
-    border-radius: 12px;
-    padding: 8px 0;
-    font-size: 14px;
-    min-width: 190px;
-    z-index: 40;
+    position: fixed;
+    top: 110px;
+    left: 20px;
+    background: rgba(30,30,30,0.95);
+    backdrop-filter: blur(40px);
+    border-radius: 14px;
+    padding: 8px;
     display: none;
+    z-index: 301;
+    min-width: 200px;
+    border: 0.5px solid rgba(255,255,255,0.1);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
 
 #menu.show {
     display: block;
 }
 
-#menu button {
-    display: block;
-    width: 100%;
-    padding: 8px 14px;
-    background: none;
-    border: none;
-    text-align: left;
-    color: #fff;
-    font-size: 14px;
+.menu-opt {
+    padding: 12px 14px;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.1s;
 }
 
-/* Petite animation de mauvais code (optionnel) */
+.menu-opt:active {
+    background: rgba(255,255,255,0.1);
+}
 
+/* Animations */
 @keyframes shake {
-    0%   { transform: translateX(-50%) translateY(0); }
-    25%  { transform: translateX(-53%) translateY(0); }
-    50%  { transform: translateX(-47%) translateY(0); }
-    75%  { transform: translateX(-53%) translateY(0); }
-    100% { transform: translateX(-50%) translateY(0); }
+    0%, 100% { transform: translateX(-50%); }
+    25% { transform: translateX(calc(-50% - 10px)); }
+    75% { transform: translateX(calc(-50% + 10px)); }
 }
 
 #dots-overlay.shake {
-    animation: shake 0.3s linear;
+    animation: shake 0.35s;
+}
+
+/* Adjust Modes */
+body.adjust-individual .dot {
+    cursor: move;
+    border: 2px solid orange !important;
+    background: rgba(255,165,0,0.3) !important;
+    position: relative;
+    z-index: 100;
+    pointer-events: auto;
+}
+
+body.adjust-individual .dot.dragging {
+    border-color: red !important;
+    background: rgba(255,0,0,0.5) !important;
+    z-index: 101;
+}
+
+body.adjust-individual #dots-overlay {
+    background: rgba(255,255,0,0.1);
+    padding: 10px;
+    border: 2px dashed orange;
+    pointer-events: none;
+}
+
+body.adjust-group #dots-overlay {
+    background: rgba(255,255,0,0.2);
+    padding: 10px;
+    border: 2px dashed orange;
+    cursor: move;
+    pointer-events: auto;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 375px) {
+    #dots-overlay {
+        top: 23%;
+    }
+
+    .touch-zone {
+        width: 24% !important;
+    }
+}
+
+@media (min-width: 414px) {
+    #dots-overlay {
+        top: 25%;
+    }
 }
 </style>
 </head>
 <body>
-
-<!-- ECRAN DE CONFIGURATION -->
+<!-- SETUP -->
 <div id="setup">
-    <div>
-        <label for="lockInput">Screenshot écran verrouillé (avec clavier et ronds)</label>
-        <input type="file" id="lockInput" accept="image/*">
+    <h1>📱 iPhone Lock Screen<br>Overlay Method</h1>
+
+    <div class="upload-box">
+        <h3>Screenshot écran verrouillé</h3>
+        <label class="upload-label" for="lockBg">Choisir</label>
+        <input type="file" id="lockBg" class="upload-input" accept="image/*">
+        <img id="prev1" class="preview">
     </div>
-    <div>
-        <label for="homeInput">Screenshot écran d’accueil</label>
-        <input type="file" id="homeInput" accept="image/*">
+
+    <div class="upload-box">
+        <h3>Screenshot écran d'accueil</h3>
+        <label class="upload-label" for="homeBg">Choisir</label>
+        <input type="file" id="homeBg" class="upload-input" accept="image/*">
+        <img id="prev2" class="preview">
     </div>
-    <button id="startBtn" disabled>Démarrer</button>
-    <p style="font-size:13px;opacity:.7;margin-top:10px;">
-        Astuce : ouvre cette page depuis l’icône “Ajoutée à l’écran d’accueil” pour avoir le vrai plein écran comme sur iOS.
-    </p>
+
+    <button id="startBtn">Démarrer</button>
+
+    <div class="info">
+        💡 <strong>Astuce :</strong> Les ronds se superposeront à ton screenshot. Utilise les réglages pour ajuster leur position si besoin.
+    </div>
 </div>
 
-<!-- LOCKSCREEN SIMULÉ -->
-<div id="lockscreen">
-    <button id="settingsBtn">⚙️</button>
-
-    <!-- Rangée de ronds -->
+<!-- LOCKSCREEN -->
+<div id="lockscreen" style="display:none;">
     <div id="dots-overlay">
         <div class="dot"></div>
         <div class="dot"></div>
@@ -269,328 +414,351 @@ body.debug .touch-zone {
         <div class="dot"></div>
     </div>
 
-    <!-- Menu réglages -->
-    <div id="menu">
-        <button data-action="toggle-zones">👁️ Afficher / cacher les zones</button>
-        <button data-action="drag-dots">🎯 Déplacer la rangée de ronds</button>
-        <button data-action="change-screens">🖼️ Changer les screenshots</button>
-        <button data-action="restart">🔄 Recommencer</button>
-    </div>
+    <!-- Zones tactiles pour iPhone standard (ajustables) -->
+    <div class="touch-zone" data-k="1" style="left:14%; top:36%; width:22%; height:9%;"></div>
+    <div class="touch-zone" data-k="2" style="left:39%; top:36%; width:22%; height:9%;"></div>
+    <div class="touch-zone" data-k="3" style="left:64%; top:36%; width:22%; height:9%;"></div>
+
+    <div class="touch-zone" data-k="4" style="left:14%; top:47%; width:22%; height:9%;"></div>
+    <div class="touch-zone" data-k="5" style="left:39%; top:47%; width:22%; height:9%;"></div>
+    <div class="touch-zone" data-k="6" style="left:64%; top:47%; width:22%; height:9%;"></div>
+
+    <div class="touch-zone" data-k="7" style="left:14%; top:58%; width:22%; height:9%;"></div>
+    <div class="touch-zone" data-k="8" style="left:39%; top:58%; width:22%; height:9%;"></div>
+    <div class="touch-zone" data-k="9" style="left:64%; top:58%; width:22%; height:9%;"></div>
+
+    <div class="touch-zone" data-k="0" style="left:39%; top:69%; width:22%; height:9%;"></div>
 </div>
 
-<!-- HOMESCREEN SIMULÉ -->
+<!-- HOMESCREEN -->
 <div id="homescreen">
     <div id="secret"></div>
 </div>
 
+<!-- Settings UI -->
+<button id="settingsBtn" onclick="toggleMenu()">⚙️</button>
+<div id="menu">
+    <div class="menu-opt" onclick="toggleDebug()">👁️ Voir les zones</div>
+    <div class="menu-opt" onclick="toggleGroupAdjust()">⚪ Ajuster groupe de ronds</div>
+    <div class="menu-opt" onclick="toggleIndividualAdjust()">🎯 Ajuster ronds individuels</div>
+    <div class="menu-opt" onclick="change()">🖼️ Changer screenshots</div>
+    <div class="menu-opt" onclick="resetAll()">🔄 Recommencer</div>
+</div>
+
 <script>
-/* -----------------------
-   REFERENCES DOM
------------------------- */
-
-const setup = document.getElementById('setup');
-const lockscreen = document.getElementById('lockscreen');
-const homescreen = document.getElementById('homescreen');
-
-const lockInput = document.getElementById('lockInput');
-const homeInput = document.getElementById('homeInput');
-const startBtn = document.getElementById('startBtn');
-
-const dotsOverlay = document.getElementById('dots-overlay');
-const dots = Array.from(document.querySelectorAll('.dot'));
-const secret = document.getElementById('secret');
-
-const settingsBtn = document.getElementById('settingsBtn');
-const menu = document.getElementById('menu');
-
-/* -----------------------
-   ETAT DU TOUR / CODES
------------------------- */
-
-let inp = "";
-let unlock = false;
-let firstCode = null;   // premier code pensé
-
-// Codes prédéfinis -> célébrités
+// Codes de déverrouillage (code:nom)
 const CODES = {
     "123456": "Brad Pitt",
     "654321": "Emma Watson",
-    "111111": "Leonardo DiCaprio"
-    // ajoute ici tous les couples code / célébrité que tu veux
+    "111111": "Leonardo DiCaprio",
+    "000000": "Admin",
+    "121212": "Guest"
 };
 
-/* -----------------------
-   CHARGEMENT DES IMAGES
------------------------- */
+let inputCode = "";
+let firstAttempt = null;
+let isUnlocked = false;
+let lockBg = null;
+let homeBg = null;
+let adjustGroupMode = false;
+let adjustIndividualMode = false;
+let draggedElement = null;
+let startX, startY, startLeft, startTop;
 
-let lockLoaded = false;
-let homeLoaded = false;
+// Éléments DOM
+const setup = document.getElementById('setup');
+const lock = document.getElementById('lockscreen');
+const home = document.getElementById('homescreen');
+const dotsOverlay = document.getElementById('dots-overlay');
+const dots = document.querySelectorAll('.dot');
+const settingsBtn = document.getElementById('settingsBtn');
+const menu = document.getElementById('menu');
 
-function updateStartButton() {
-    if (lockLoaded && homeLoaded) {
-        startBtn.disabled = false;
-        startBtn.classList.add('enabled');
+// Initialisation
+document.getElementById('lockBg').onchange = handleFileUpload('prev1', 'lockBg');
+document.getElementById('homeBg').onchange = handleFileUpload('prev2', 'homeBg');
+document.getElementById('startBtn').onclick = startSimulation;
+document.querySelectorAll('.touch-zone').forEach(zone => {
+    zone.onclick = () => { if(!isUnlocked) handleKeyPress(zone.dataset.k); };
+});
+
+// Fonctions utilitaires
+function handleFileUpload(previewId, targetVar) {
+    return function(e) {
+        const file = e.target.files[0];
+        if(file) {
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                window[targetVar] = ev.target.result;
+                document.getElementById(previewId).src = window[targetVar];
+                document.getElementById(previewId).classList.add('show');
+                checkReady();
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+}
+
+function checkReady() {
+    if(lockBg && homeBg) {
+        document.getElementById('startBtn').classList.add('show');
     }
 }
 
-lockInput.addEventListener('change', e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    document.documentElement.style.setProperty('--bg-lock', `url(${url})`);
-    lockLoaded = true;
-    updateStartButton();
-});
+function startSimulation() {
+    if(lockBg) {
+        lock.style.setProperty('--bg-lock', `url(${lockBg})`);
+        lock.classList.add('custom');
+    }
+    if(homeBg) {
+        home.style.setProperty('--bg-home', `url(${homeBg})`);
+        home.classList.add('custom');
+    }
 
-homeInput.addEventListener('change', e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    document.documentElement.style.setProperty('--bg-home', `url(${url})`);
-    homeLoaded = true;
-    updateStartButton();
-});
-
-startBtn.addEventListener('click', () => {
-    if (!lockLoaded || !homeLoaded) return;
     setup.style.display = 'none';
-    lockscreen.style.display = 'block';
-});
-
-/* -----------------------
-   ZONES TACTILES (CLAVIER)
------------------------- */
-
-function createTouchZones() {
-    // Positions approximatives (en %) pour un écran ratio iPhone X–14
-    // à ajuster si besoin
-    const positions = [
-        { num: "1", x: 22, y: 52 },
-        { num: "2", x: 50, y: 52 },
-        { num: "3", x: 78, y: 52 },
-        { num: "4", x: 22, y: 63 },
-        { num: "5", x: 50, y: 63 },
-        { num: "6", x: 78, y: 63 },
-        { num: "7", x: 22, y: 74 },
-        { num: "8", x: 50, y: 74 },
-        { num: "9", x: 78, y: 74 },
-        { num: "0", x: 50, y: 86 }
-    ];
-
-    positions.forEach(pos => {
-        const z = document.createElement('div');
-        z.className = 'touch-zone';
-        z.style.left = pos.x + '%';
-        z.style.top = pos.y + '%';
-        z.dataset.num = pos.num;
-
-        // On gère clic + touchstart
-        function onPress(ev) {
-            ev.preventDefault();
-            ev.stopPropagation();
-            handleDigit(pos.num);
-        }
-        z.addEventListener('click', onPress);
-        z.addEventListener('touchstart', onPress, { passive: false });
-
-        lockscreen.appendChild(z);
-    });
+    lock.style.display = 'flex';
+    settingsBtn.classList.add('show');
+    isUnlocked = false;
+    firstAttempt = null;
+    inputCode = "";
+    updateDots();
 }
 
-createTouchZones();
+function handleKeyPress(key) {
+    if(inputCode.length >= 6) return;
 
-/* -----------------------
-   GESTION DES RONDS
------------------------- */
+    inputCode += key;
+    updateDots();
+
+    // Feedback haptique si disponible
+    if(navigator.vibrate) {
+        navigator.vibrate(10);
+    }
+
+    if(inputCode.length === 6) {
+        setTimeout(() => {
+            if(!firstAttempt) {
+                firstAttempt = inputCode;
+                setTimeout(() => resetInput(), 600);
+            } else if(CODES[inputCode]) {
+                unlockScreen(CODES[inputCode]);
+            } else {
+                // Animation d'erreur
+                dotsOverlay.classList.add('shake');
+                setTimeout(() => {
+                    dotsOverlay.classList.remove('shake');
+                    resetInput();
+                }, 400);
+            }
+        }, 300);
+    }
+}
 
 function updateDots() {
-    const n = inp.length;
-    dots.forEach((dot, idx) => {
-        if (idx < n) dot.classList.add('filled');
-        else dot.classList.remove('filled');
+    dots.forEach((dot, index) => {
+        if(index < inputCode.length) {
+            dot.classList.add('filled');
+        } else {
+            dot.classList.remove('filled');
+        }
     });
 }
 
-function resetDots() {
-    inp = "";
+function resetInput() {
+    inputCode = "";
     updateDots();
 }
 
-/* -----------------------
-   LOGIQUE DES CODES
------------------------- */
+function unlockScreen(celebName) {
+    isUnlocked = true;
+    document.getElementById('secret').innerHTML = `${celebName}<br>Code: ${firstAttempt}`;
+    home.style.display = 'block';
+    home.classList.add('show');
+    lock.style.display = 'none';
 
-function handleDigit(num) {
-    if (unlock) return;
-    if (inp.length >= 6) return;
-
-    // vibration courte si dispo
-    if (navigator.vibrate) {
-        navigator.vibrate(40);
-    }
-
-    inp += num;
-    updateDots();
-
-    if (inp.length === 6) {
-        // 1) Première saisie : on mémorise et on ne déverrouille PAS
-        if (firstCode === null) {
-            firstCode = inp;
-
-            setTimeout(() => {
-                resetDots();
-            }, 150);
-
-            return;
-        }
-
-        // 2) Saisies suivantes : seul un code prédéfini fonctionne
-        const celeb = CODES[inp];
-
-        if (celeb) {
-            // Bon code
-            unlock = true;
-            showHome(celeb, inp);
-        } else {
-            // Mauvais code : petite animation
-            wrongCode();
-        }
+    // Feedback haptique pour le déverrouillage
+    if(navigator.vibrate) {
+        navigator.vibrate([50, 100, 50]);
     }
 }
 
-function wrongCode() {
-    dotsOverlay.classList.add('shake');
-    setTimeout(() => {
-        dotsOverlay.classList.remove('shake');
-        resetDots();
-    }, 320);
-}
-
-function showHome(celeb, usedCode) {
-    lockscreen.style.display = 'none';
-    homescreen.style.display = 'block';
-
-    secret.innerHTML = `
-        Premier code pensé : <strong>${firstCode || '—'}</strong><br>
-        Code qui a déverrouillé : <strong>${usedCode}</strong><br>
-        Célébrité : <strong>${celeb}</strong>
-    `;
-}
-
-/* -----------------------
-   MENU / REGLAGES
------------------------- */
-
-settingsBtn.addEventListener('click', e => {
-    e.stopPropagation();
+// Gestion des paramètres
+function toggleMenu() {
     menu.classList.toggle('show');
-});
+}
 
-// Fermer le menu si on clique ailleurs
-document.addEventListener('click', e => {
-    if (!e.target.closest('#menu') && !e.target.closest('#settingsBtn')) {
-        menu.classList.remove('show');
-    }
-});
+function toggleDebug() {
+    document.body.classList.toggle('debug');
+    toggleMenu();
+}
 
-// Actions du menu
-let dragDotsMode = false;
-let draggedElement = null;
-let dragOffsetX = 0;
-let dragOffsetY = 0;
-
-menu.addEventListener('click', e => {
-    const btn = e.target.closest('button');
-    if (!btn) return;
-
-    const action = btn.dataset.action;
-
-    if (action === 'toggle-zones') {
-        document.body.classList.toggle('debug');
+function toggleGroupAdjust() {
+    // Désactiver le mode individuel si actif
+    if(adjustIndividualMode) {
+        toggleIndividualAdjust();
     }
 
-    if (action === 'drag-dots') {
-        dragDotsMode = !dragDotsMode;
-        btn.textContent = dragDotsMode
-            ? '🎯 Arrêter le déplacement'
-            : '🎯 Déplacer la rangée de ronds';
+    adjustGroupMode = !adjustGroupMode;
+    document.body.classList.toggle('adjust-group');
+
+    if(adjustGroupMode) {
+        dotsOverlay.style.cursor = 'move';
+        dotsOverlay.onmousedown = startDragGroup;
+        dotsOverlay.ontouchstart = startDragGroup;
+    } else {
+        dotsOverlay.style.cursor = '';
+        dotsOverlay.onmousedown = null;
+        dotsOverlay.ontouchstart = null;
     }
 
-    if (action === 'change-screens') {
-        // Retour à l'écran de setup sans recharger
-        unlock = false;
-        firstCode = null;
-        resetDots();
-        homescreen.style.display = 'none';
-        lockscreen.style.display = 'none';
-        setup.style.display = 'flex';
+    toggleMenu();
+}
+
+function toggleIndividualAdjust() {
+    // Désactiver le mode groupe si actif
+    if(adjustGroupMode) {
+        toggleGroupAdjust();
     }
 
-    if (action === 'restart') {
-        location.reload();
+    adjustIndividualMode = !adjustIndividualMode;
+    document.body.classList.toggle('adjust-individual');
+
+    if(adjustIndividualMode) {
+        dots.forEach(dot => {
+            dot.style.position = 'relative';
+            dot.onmousedown = startDragDot;
+            dot.ontouchstart = startDragDot;
+        });
+    } else {
+        dots.forEach(dot => {
+            dot.onmousedown = null;
+            dot.ontouchstart = null;
+        });
     }
 
-    menu.classList.remove('show');
-});
+    toggleMenu();
+}
 
-/* Déplacement de la rangée de ronds (si mode actif) */
+function startDragGroup(e) {
+    if(!adjustGroupMode) return;
 
-function onDragStart(e) {
-    if (!dragDotsMode) return;
-    if (!e.target.closest('#dots-overlay')) return;
+    const isTouch = e.type === 'touchstart';
+    const clientX = isTouch ? e.touches[0].clientX : e.clientX;
+    const clientY = isTouch ? e.touches[0].clientY : e.clientY;
+
+    const rect = dotsOverlay.getBoundingClientRect();
+    startX = clientX;
+    startY = clientY;
+    startLeft = rect.left;
+    startTop = rect.top;
 
     draggedElement = dotsOverlay;
+    e.preventDefault();
+}
+
+function startDragDot(e) {
+    if(!adjustIndividualMode) return;
+
+    draggedElement = e.target;
+    draggedElement.classList.add('dragging');
+
     const isTouch = e.type === 'touchstart';
     const clientX = isTouch ? e.touches[0].clientX : e.clientX;
     const clientY = isTouch ? e.touches[0].clientY : e.clientY;
 
     const rect = draggedElement.getBoundingClientRect();
-    dragOffsetX = clientX - rect.left;
-    dragOffsetY = clientY - rect.top;
+    startX = clientX;
+    startY = clientY;
+    startLeft = rect.left;
+    startTop = rect.top;
 
     e.preventDefault();
     e.stopPropagation();
 }
 
-function onDragMove(e) {
-    if (!draggedElement) return;
+document.addEventListener('mousemove', doDrag);
+document.addEventListener('touchmove', doDrag, { passive: false });
+
+function doDrag(e) {
+    if(!draggedElement) return;
+
     const isTouch = e.type === 'touchmove';
     const clientX = isTouch ? e.touches[0].clientX : e.clientX;
     const clientY = isTouch ? e.touches[0].clientY : e.clientY;
 
-    const lockRect = lockscreen.getBoundingClientRect();
-    const left = clientX - lockRect.left - dragOffsetX + draggedElement.offsetWidth / 2;
-    const top = clientY - lockRect.top - dragOffsetY + draggedElement.offsetHeight / 2;
+    if(draggedElement === dotsOverlay) {
+        // Déplacer tout le groupe
+        const offsetX = clientX - startX;
+        const offsetY = clientY - startY;
 
-    const percentLeft = (left / lockRect.width) * 100;
-    const percentTop = (top / lockRect.height) * 100;
+        dotsOverlay.style.left = `calc(${startLeft}px + ${offsetX}px - 50%)`;
+        dotsOverlay.style.top = `${startTop + offsetY}px`;
+        dotsOverlay.style.transform = 'none';
+    } else {
+        // Déplacer un cercle individuel
+        const offsetX = clientX - startX;
+        const offsetY = clientY - startY;
 
-    draggedElement.style.left = percentLeft + '%';
-    draggedElement.style.top = percentTop + '%';
-    draggedElement.style.transform = 'translateX(-50%)';
+        draggedElement.style.left = `${offsetX}px`;
+        draggedElement.style.top = `${offsetY}px`;
+    }
 
     e.preventDefault();
 }
 
-function onDragEnd() {
+document.addEventListener('mouseup', endDrag);
+document.addEventListener('touchend', endDrag);
+
+function endDrag() {
+    if(draggedElement && draggedElement !== dotsOverlay) {
+        draggedElement.classList.remove('dragging');
+    }
     draggedElement = null;
 }
 
-lockscreen.addEventListener('mousedown', onDragStart);
-lockscreen.addEventListener('touchstart', onDragStart, { passive: false });
-document.addEventListener('mousemove', onDragMove, { passive: false });
-document.addEventListener('touchmove', onDragMove, { passive: false });
-document.addEventListener('mouseup', onDragEnd);
-document.addEventListener('touchend', onDragEnd);
+function change() {
+    isUnlocked = false;
+    firstAttempt = null;
+    inputCode = "";
+    home.classList.remove('show');
+    home.style.display = 'none';
+    lock.style.display = 'none';
+    setup.style.display = 'flex';
+    settingsBtn.classList.remove('show');
+    toggleMenu();
+}
 
-/* -----------------------
-   OPTION : TAPER AU CLAVIER (desktop)
------------------------- */
-document.addEventListener('keydown', e => {
-    if (e.key >= '0' && e.key <= '9') {
-        handleDigit(e.key);
+function resetAll() {
+    location.reload();
+}
+
+// Fermer le menu quand on clique ailleurs
+document.addEventListener('click', (e) => {
+    if(!e.target.closest('#settingsBtn') && !e.target.closest('#menu')) {
+        menu.classList.remove('show');
     }
 });
+
+// Empêcher le zoom sur double-tap
+document.addEventListener('dblclick', (e) => {
+    e.preventDefault();
+});
+
+// Optimisation pour iOS
+if(/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+    document.body.classList.add('ios-device');
+
+    // Désactiver le défilement élastique
+    document.body.style.overscrollBehavior = 'none';
+    document.documentElement.style.overscrollBehavior = 'none';
+
+    // Cacher la barre d'adresse après le chargement
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            window.scrollTo(0, 1);
+        }, 100);
+    });
+}
 </script>
 </body>
 </html>
