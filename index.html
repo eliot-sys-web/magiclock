@@ -2,16 +2,20 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>iPhone Lock</title>
-<!-- PWA Meta Tags -->
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+<title>iPhone Lock Screen</title>
+
+<!-- Viewport pour mobile -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+
+<!-- Mode plein écran iOS -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Lock">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#000000">
-<!-- Apple Touch Icons -->
+<meta name="apple-mobile-web-app-title" content="Lockscreen">
+
+<!-- Icône iOS écran d'accueil (180x180 px recommandé) -->
 <link rel="apple-touch-icon" href="/iphone-lock/Lock180.png">
+
+<!-- Manifest PWA pour Android/Chrome -->
 <link rel="manifest" href="/iphone-lock/manifest.json">
 <style>
 * {
@@ -31,11 +35,9 @@ body {
     position: fixed;
     top: 0;
     left: 0;
-    margin: 0;
-    padding: 0;
 }
 
-/* LOCKSCREEN - Screenshot en fond PLEIN ÉCRAN */
+/* LOCKSCREEN - Screenshot en fond */
 #lockscreen {
     width: 100vw;
     height: 100vh;
@@ -47,15 +49,14 @@ body {
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
+    background-color: #000;
 }
 
 #lockscreen.custom {
     background-image: var(--bg-lock);
 }
 
-/* Overlay pour les ronds dynamiques - Calculé depuis ton screenshot */
+/* Overlay pour les ronds dynamiques */
 #dots-overlay {
     position: absolute;
     display: flex;
@@ -82,7 +83,6 @@ body {
     border-color: white;
     border-width: 1px;
 }
-
 /* Zones tactiles invisibles sur le clavier */
 .touch-zone {
     position: absolute;
@@ -108,9 +108,8 @@ body.debug .touch-zone {
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
     z-index: 200;
+    background-color: #000;
 }
 
 #homescreen.custom {
@@ -229,7 +228,7 @@ body.debug .touch-zone {
     line-height: 1.5;
 }
 
-/* SETTINGS - Caché par défaut */
+/* SETTINGS */
 #settingsBtn {
     position: fixed;
     top: 60px;
@@ -247,14 +246,9 @@ body.debug .touch-zone {
     justify-content: center;
     z-index: 300;
     cursor: pointer;
-    opacity: 0;
-    transition: opacity 0.3s;
 }
 
-#settingsBtn.show { 
-    display: flex;
-    opacity: 1;
-}
+#settingsBtn.show { display: flex; }
 
 #menu {
     position: fixed;
@@ -288,12 +282,9 @@ body.debug .touch-zone {
     75% { transform: translateX(calc(-50% + 10px)); }
 }
 
-/* Animation shake désactivée */
 #dots-overlay.shake {
     /* Pas d'animation */
 }
-
-/* Mode ajustement individuel des cercles */
 body.adjust-individual .dot {
     cursor: move;
     border: 2px solid orange !important;
@@ -383,8 +374,6 @@ body.adjust-individual .dot.dragging {
 const CODES = {"123456":"Brad Pitt","654321":"Emma Watson","111111":"Leonardo DiCaprio"};
 let inp = "", first = null, unlock = false;
 let lockBg = null, homeBg = null;
-let longPressTimer = null;
-let settingsVisible = false;
 
 const setup = document.getElementById('setup');
 const lock = document.getElementById('lockscreen');
@@ -393,33 +382,12 @@ const dotsOverlay = document.getElementById('dots-overlay');
 const dots = document.querySelectorAll('.dot');
 const btn = document.getElementById('settingsBtn');
 
-// Charger les images sauvegardées au démarrage
-window.addEventListener('load', function() {
-    // Check si reset demandé via URL
-    const urlParams = new URLSearchParams(window.location.search);
-    if(urlParams.get('reset') === '1') {
-        localStorage.clear();
-        window.location.href = window.location.pathname;
-        return;
-    }
-    
-    const savedLock = localStorage.getItem('lockscreen_bg');
-    const savedHome = localStorage.getItem('homescreen_bg');
-    
-    if(savedLock && savedHome) {
-        lockBg = savedLock;
-        homeBg = savedHome;
-        start();
-    }
-});
-
 document.getElementById('lockBg').onchange = e => {
     const f = e.target.files[0];
     if(f) {
         const r = new FileReader();
         r.onload = ev => {
             lockBg = ev.target.result;
-            localStorage.setItem('lockscreen_bg', lockBg);
             document.getElementById('prev1').src = lockBg;
             document.getElementById('prev1').classList.add('show');
             check();
@@ -434,7 +402,6 @@ document.getElementById('homeBg').onchange = e => {
         const r = new FileReader();
         r.onload = ev => {
             homeBg = ev.target.result;
-            localStorage.setItem('homescreen_bg', homeBg);
             document.getElementById('prev2').src = homeBg;
             document.getElementById('prev2').classList.add('show');
             check();
@@ -460,8 +427,14 @@ function start() {
     }
     setup.style.display = 'none';
     lock.style.display = 'flex';
-    
-    // Charger la position et l'espacement sauvegardés
+    btn.classList.add('show');
+}
+
+// Zones tactiles
+document.querySelectorAll('.touch-zone').forEach(z => {
+    z.onclick = () => { if(!unlock) handle(z.dataset.k); };
+});
+// Ici
     const savedPosition = localStorage.getItem('dots_position');
     if(savedPosition) {
         const pos = JSON.parse(savedPosition);
@@ -488,59 +461,6 @@ function start() {
         });
     }
     
-    // Appui long pour afficher/masquer settings
-    lock.addEventListener('mousedown', startLongPress);
-    lock.addEventListener('touchstart', startLongPress, {passive: true});
-    lock.addEventListener('mouseup', cancelLongPress);
-    lock.addEventListener('touchend', cancelLongPress, {passive: true});
-    lock.addEventListener('mousemove', cancelLongPress);
-    lock.addEventListener('touchmove', cancelLongPress, {passive: true});
-    
-    // Appui long sur homescreen pour revenir
-    home.addEventListener('mousedown', startLongPressHome);
-    home.addEventListener('touchstart', startLongPressHome, {passive: true});
-    home.addEventListener('mouseup', cancelLongPress);
-    home.addEventListener('touchend', cancelLongPress, {passive: true});
-    home.addEventListener('mousemove', cancelLongPress);
-    home.addEventListener('touchmove', cancelLongPress, {passive: true});
-}
-
-function startLongPress(e) {
-    if(unlock) return;
-    longPressTimer = setTimeout(() => {
-        settingsVisible = !settingsVisible;
-        if(settingsVisible) {
-            btn.classList.add('show');
-        } else {
-            btn.classList.remove('show');
-            document.getElementById('menu').classList.remove('show');
-        }
-        if(navigator.vibrate) navigator.vibrate(50);
-    }, 1500);
-}
-
-function startLongPressHome(e) {
-    longPressTimer = setTimeout(() => {
-        // Revenir à l'écran de verrouillage
-        unlock = false;
-        first = null;
-        inp = "";
-        updateDots();
-        home.classList.remove('show');
-        home.style.display = 'none';
-        lock.style.display = 'flex';
-        if(navigator.vibrate) navigator.vibrate([50, 50]);
-    }, 1500);
-}
-
-function cancelLongPress() {
-    clearTimeout(longPressTimer);
-}
-
-// Zones tactiles
-document.querySelectorAll('.touch-zone').forEach(z => {
-    z.onclick = () => { if(!unlock) handle(z.dataset.k); };
-});
 
 function handle(d) {
     if(inp.length >= 6) return;
@@ -597,155 +517,20 @@ function toggleDebug() {
 }
 
 let adjustMode = false;
-let adjustGapMode = false;
-let adjustIndividualMode = false;
 let draggedDot = null;
-let draggedDotIndex = -1;
-
-function adjustIndividual() {
-    adjustIndividualMode = !adjustIndividualMode;
-    
-    if(adjustIndividualMode) {
-        adjustMode = false;
-        document.body.classList.add('adjust-individual');
-        
-        // Charger les positions sauvegardées
-        const savedIndividual = localStorage.getItem('dots_individual_positions');
-        if(savedIndividual) {
-            const positions = JSON.parse(savedIndividual);
-            dots.forEach((dot, i) => {
-                if(positions[i]) {
-                    dot.style.transform = `translate(${positions[i].x}px, ${positions[i].y}px)`;
-                    dot._offsetX = positions[i].x;
-                    dot._offsetY = positions[i].y;
-                }
-            });
-        }
-        
-        // Activer le drag sur chaque cercle
-        dots.forEach((dot, index) => {
-            dot._offsetX = dot._offsetX || 0;
-            dot._offsetY = dot._offsetY || 0;
-            
-            dot.onmousedown = (e) => startDragDot(e, dot, index);
-            dot.ontouchstart = (e) => startDragDot(e, dot, index);
-        });
-    } else {
-        document.body.classList.remove('adjust-individual');
-        
-        // Sauvegarder les positions
-        const positions = {};
-        dots.forEach((dot, i) => {
-            positions[i] = {
-                x: dot._offsetX || 0,
-                y: dot._offsetY || 0
-            };
-        });
-        localStorage.setItem('dots_individual_positions', JSON.stringify(positions));
-        
-        // Désactiver le drag
-        dots.forEach(dot => {
-            dot.onmousedown = null;
-            dot.ontouchstart = null;
-        });
-    }
-    
-    document.getElementById('menu').classList.remove('show');
-}
-
-function startDragDot(e, dot, index) {
-    if(!adjustIndividualMode) return;
-    
-    draggedDot = dot;
-    draggedDotIndex = index;
-    dot.classList.add('dragging');
-    
-    const isTouch = e.type === 'touchstart';
-    const clientX = isTouch ? e.touches[0].clientX : e.clientX;
-    const clientY = isTouch ? e.touches[0].clientY : e.clientY;
-    
-    const rect = dot.getBoundingClientRect();
-    dot._startX = clientX;
-    dot._startY = clientY;
-    dot._initialOffsetX = dot._offsetX || 0;
-    dot._initialOffsetY = dot._offsetY || 0;
-    
-    e.preventDefault();
-    e.stopPropagation();
-}
-
-document.addEventListener('mousemove', (e) => {
-    if(draggedDot && adjustIndividualMode) {
-        const deltaX = e.clientX - draggedDot._startX;
-        const deltaY = e.clientY - draggedDot._startY;
-        
-        draggedDot._offsetX = draggedDot._initialOffsetX + deltaX;
-        draggedDot._offsetY = draggedDot._initialOffsetY + deltaY;
-        
-        draggedDot.style.transform = `translate(${draggedDot._offsetX}px, ${draggedDot._offsetY}px)`;
-        e.preventDefault();
-    }
-});
-
-document.addEventListener('touchmove', (e) => {
-    if(draggedDot && adjustIndividualMode) {
-        const touch = e.touches[0];
-        const deltaX = touch.clientX - draggedDot._startX;
-        const deltaY = touch.clientY - draggedDot._startY;
-        
-        draggedDot._offsetX = draggedDot._initialOffsetX + deltaX;
-        draggedDot._offsetY = draggedDot._initialOffsetY + deltaY;
-        
-        draggedDot.style.transform = `translate(${draggedDot._offsetX}px, ${draggedDot._offsetY}px)`;
-        e.preventDefault();
-    }
-}, {passive: false});
-
-document.addEventListener('mouseup', () => {
-    if(draggedDot) {
-        draggedDot.classList.remove('dragging');
-        draggedDot = null;
-        draggedDotIndex = -1;
-    }
-});
-
-document.addEventListener('touchend', () => {
-    if(draggedDot) {
-        draggedDot.classList.remove('dragging');
-        draggedDot = null;
-        draggedDotIndex = -1;
-    }
-});
 
 function adjustDots() {
     adjustMode = !adjustMode;
     if(adjustMode) {
-        adjustGapMode = false;
         dotsOverlay.style.background = 'rgba(255,255,0,0.2)';
         dotsOverlay.style.padding = '10px';
         dotsOverlay.style.border = '2px dashed orange';
         dotsOverlay.style.cursor = 'move';
+        
+        // Rendre draggable
         dotsOverlay.onmousedown = startDrag;
         dotsOverlay.ontouchstart = startDrag;
     } else {
-        // Calculer et sauvegarder la position finale en pixels
-        const rect = dotsOverlay.getBoundingClientRect();
-        const lockRect = lock.getBoundingClientRect();
-        
-        const finalTop = ((rect.top - lockRect.top) / lockRect.height) * 100;
-        const finalLeft = ((rect.left + rect.width/2 - lockRect.left) / lockRect.width) * 100;
-        
-        // Appliquer et sauvegarder
-        dotsOverlay.style.top = finalTop + '%';
-        dotsOverlay.style.left = finalLeft + '%';
-        dotsOverlay.style.transform = 'translateX(-50%)';
-        
-        localStorage.setItem('dots_position', JSON.stringify({
-            top: finalTop + '%',
-            left: finalLeft + '%'
-        }));
-        
-        // Enlever le style d'édition
         dotsOverlay.style.background = '';
         dotsOverlay.style.padding = '';
         dotsOverlay.style.border = '';
@@ -756,24 +541,63 @@ function adjustDots() {
     document.getElementById('menu').classList.remove('show');
 }
 
-function adjustGap() {
-    adjustGapMode = !adjustGapMode;
-    if(adjustGapMode) {
-        adjustMode = false;
-        const currentGap = parseFloat(getComputedStyle(dotsOverlay).gap) || 17;
-        const newGap = prompt('Espacement entre les ronds (en pixels) :', currentGap);
-        if(newGap !== null && !isNaN(newGap)) {
-            dotsOverlay.style.gap = newGap + 'px';
-            localStorage.setItem('dots_gap', newGap + 'px');
-        }
-        adjustGapMode = false;
-    }
+function startDrag(e) {
+    if(!adjustMode) return;
+    draggedDot = dotsOverlay;
+    const isTouch = e.type === 'touchstart';
+    const clientX = isTouch ? e.touches[0].clientX : e.clientX;
+    const clientY = isTouch ? e.touches[0].clientY : e.clientY;
+    
+    const rect = dotsOverlay.getBoundingClientRect();
+    dotsOverlay._offsetX = clientX - rect.left;
+    dotsOverlay._offsetY = clientY - rect.top;
+    
+    e.preventDefault();
+}
+
+document.addEventListener('mousemove', doDrag);
+document.addEventListener('touchmove', doDrag);
+
+function doDrag(e) {
+    if(!draggedDot) return;
+    const isTouch = e.type === 'touchmove';
+    const clientX = isTouch ? e.touches[0].clientX : e.clientX;
+    const clientY = isTouch ? e.touches[0].clientY : e.clientY;
+    
+    const lockRect = lock.getBoundingClientRect();
+    const newLeft = ((clientX - lockRect.left - dotsOverlay._offsetX) / lockRect.width) * 100;
+    const newTop = ((clientY - lockRect.top - dotsOverlay._offsetY) / lockRect.height) * 100;
+    
+    dotsOverlay.style.left = newLeft + '%';
+    dotsOverlay.style.top = newTop + '%';
+    dotsOverlay.style.transform = 'none';
+    
+    e.preventDefault();
+}
+
+document.addEventListener('mouseup', () => { draggedDot = null; });
+document.addEventListener('touchend', () => { draggedDot = null; });
+
+function change() {
+    unlock = false;
+    first = null;
+    inp = "";
+    home.classList.remove('show');
+    home.style.display = 'none';
+    lock.style.display = 'none';
+    setup.style.display = 'flex';
+    btn.classList.remove('show');
     document.getElementById('menu').classList.remove('show');
 }
 
-function resetDots() {
-    localStorage.removeItem('dots_position');
-    localStorage.removeItem('dots_gap');
+document.addEventListener('click', e => {
+    if(!e.target.closest('#settingsBtn') && !e.target.closest('#menu')) {
+        document.getElementById('menu').classList.remove('show');
+    }
+});
+</script>
+</body>
+</html>
     localStorage.removeItem('dots_individual_positions');
     dotsOverlay.style.top = '24%';
     dotsOverlay.style.left = '50%';
