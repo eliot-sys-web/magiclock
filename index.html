@@ -472,22 +472,23 @@ function start() {
     
     // Appui long pour afficher/masquer settings
     lock.addEventListener('mousedown', startLongPress);
-    lock.addEventListener('touchstart', startLongPress, {passive: true});
+    lock.addEventListener('touchstart', startLongPress, {passive: false});
     lock.addEventListener('mouseup', cancelLongPress);
     lock.addEventListener('touchend', cancelLongPress, {passive: true});
     lock.addEventListener('mousemove', cancelLongPress);
-    lock.addEventListener('touchmove', cancelLongPress, {passive: true});
+    lock.addEventListener('touchmove', cancelLongPress, {passive: false});
     
     // Appui long sur homescreen pour revenir
     home.addEventListener('mousedown', startLongPressHome);
-    home.addEventListener('touchstart', startLongPressHome, {passive: true});
+    home.addEventListener('touchstart', startLongPressHome, {passive: false});
     home.addEventListener('mouseup', cancelLongPress);
     home.addEventListener('touchend', cancelLongPress, {passive: true});
     home.addEventListener('mousemove', cancelLongPress);
-    home.addEventListener('touchmove', cancelLongPress, {passive: true});
+    home.addEventListener('touchmove', cancelLongPress, {passive: false});
 }
 
 function startLongPress(e) {
+    e.preventDefault();
     if(unlock) return;
     longPressTimer = setTimeout(() => {
         settingsVisible = !settingsVisible;
@@ -517,6 +518,7 @@ function startLongPressHome(e) {
 
 function cancelLongPress() {
     clearTimeout(longPressTimer);
+    e.preventDefault();
 }
 
 // Zones tactiles
