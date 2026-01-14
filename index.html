@@ -5,20 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Lockscreen">
-<meta name="theme-color" content="#000000">
-<link rel="apple-touch-icon" href="/iphone-lock/Lock180.png">
-<link rel="manifest" href="/iphone-lock/manifest.json">
 <title>iPhone 13 Lock Screen</title>
 <style>
 :root {
     --dot-size: 18px;
-    --dot-gap: 17px;
-    --dot-border: 2px;
-    --dot-color: white;
-    --dot-transition: all 0.15s ease;
-    --dots-top: 25.5%; /* Position optimisée pour iPhone 13 */
-    --dots-left: 50%;
+    --dot-spacing: 17px;
+    --dots-top: calc(50vh - 100px); /* Position optimale pour iPhone 13 */
 }
 
 * {
@@ -27,13 +19,10 @@
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
     overflow: hidden;
     background: #000;
     width: 100vw;
@@ -41,43 +30,27 @@ body {
     position: fixed;
     top: 0;
     left: 0;
-    color: white;
     touch-action: manipulation;
 }
 
-/* Base Screen Styles */
-.screen {
-    width: 100vw;
-    height: 100vh;
+#lockscreen {
+    width: 100%;
+    height: 100%;
     background-size: cover;
     background-position: center;
-    background-repeat: no-repeat;
     position: fixed;
     top: 0;
     left: 0;
-    background-color: #000;
-    will-change: transform;
-}
-
-/* Lockscreen Specific - iPhone 13 optimized */
-#lockscreen {
-    display: flex;
-    flex-direction: column;
     z-index: 100;
 }
 
-#lockscreen.custom {
-    background-image: var(--bg-lock);
-}
-
-/* Dots Overlay - Position précise pour iPhone 13 */
-#dots-overlay {
+.dots-container {
     position: absolute;
     top: var(--dots-top);
-    left: var(--dots-left);
+    left: 50%;
     transform: translateX(-50%);
     display: flex;
-    gap: var(--dot-gap);
+    gap: var(--dot-spacing);
     z-index: 10;
     pointer-events: none;
 }
@@ -86,178 +59,114 @@ body {
     width: var(--dot-size);
     height: var(--dot-size);
     border-radius: 50%;
-    border: var(--dot-border) solid rgba(255,255,255,0);
+    border: 2px solid rgba(255,255,255,0.3);
     background: transparent;
-    transition: var(--dot-transition);
-    position: relative;
+    transition: all 0.1s ease;
 }
 
 .dot.filled {
-    background: var(--dot-color);
-    border-color: var(--dot-color);
+    background: white;
+    border-color: white;
 }
 
-/* Touch Zones - Optimisées pour iPhone 13 */
-.touch-zone {
+/* Zones tactiles invisibles (positionnement exact iPhone 13) */
+.touch-area {
     position: absolute;
     border-radius: 50%;
     z-index: 5;
-    cursor: pointer;
     opacity: 0;
-    transition: opacity 0.2s;
 }
 
-/* Zones tactiles précises pour iPhone 13 */
-.touch-zone-1 { left: 17.5%; top: 37.5%; width: 19%; height: 8.5%; }
-.touch-zone-2 { left: 41.25%; top: 37.5%; width: 19%; height: 8.5%; }
-.touch-zone-3 { left: 65%; top: 37.5%; width: 19%; height: 8.5%; }
-.touch-zone-4 { left: 17.5%; top: 47.5%; width: 19%; height: 8.5%; }
-.touch-zone-5 { left: 41.25%; top: 47.5%; width: 19%; height: 8.5%; }
-.touch-zone-6 { left: 65%; top: 47.5%; width: 19%; height: 8.5%; }
-.touch-zone-7 { left: 17.5%; top: 57.5%; width: 19%; height: 8.5%; }
-.touch-zone-8 { left: 41.25%; top: 57.5%; width: 19%; height: 8.5%; }
-.touch-zone-9 { left: 65%; top: 57.5%; width: 19%; height: 8.5%; }
-.touch-zone-0 { left: 41.25%; top: 67.5%; width: 19%; height: 8.5%; }
+.touch-1 { left: 25%; top: 40%; width: 20%; height: 10%; }
+.touch-2 { left: 50%; top: 40%; width: 20%; height: 10%; }
+.touch-3 { left: 75%; top: 40%; width: 20%; height: 10%; }
+.touch-4 { left: 25%; top: 50%; width: 20%; height: 10%; }
+.touch-5 { left: 50%; top: 50%; width: 20%; height: 10%; }
+.touch-6 { left: 75%; top: 50%; width: 20%; height: 10%; }
+.touch-7 { left: 25%; top: 60%; width: 20%; height: 10%; }
+.touch-8 { left: 50%; top: 60%; width: 20%; height: 10%; }
+.touch-9 { left: 75%; top: 60%; width: 20%; height: 10%; }
+.touch-0 { left: 50%; top: 70%; width: 20%; height: 10%; }
 
-body.debug .touch-zone {
-    background: rgba(255,0,0,0.3);
-    border: 2px solid red;
+/* Mode debug - décommente pour voir les zones */
+/*
+.touch-area {
+    background: rgba(255,0,0,0.2);
+    border: 1px solid red;
     opacity: 1;
 }
-
-/* Homescreen */
-#homescreen {
-    display: none;
-    z-index: 200;
-}
-
-#homescreen.custom {
-    background-image: var(--bg-home);
-}
-
-#homescreen.show {
-    display: block;
-}
-
-#secret {
-    position: absolute;
-    bottom: 30px;
-    right: 20px;
-    color: rgba(255,255,255,0.25);
-    font-size: 10px;
-    text-align: right;
-    line-height: 1.5;
-    font-family: -apple-system, sans-serif;
-    text-shadow: 0 0 2px rgba(0,0,0,0.5);
-}
-
-/* Setup Screen */
-#setup {
-    width: 100vw;
-    height: 100vh;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    overflow-y: auto;
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 300;
-}
-
-/* [Rest of the CSS remains the same as previous version] */
+*/
 </style>
 </head>
 <body>
-<!-- SETUP -->
-<div id="setup">
-    <h1>📱 iPhone 13 Lock Screen<br>Overlay Method</h1>
-
-    <div class="upload-box">
-        <h3>Screenshot écran verrouillé</h3>
-        <label class="upload-label" for="lockBg">Choisir</label>
-        <input type="file" id="lockBg" class="upload-input" accept="image/*">
-        <img id="prev1" class="preview">
+<div id="lockscreen">
+    <!-- Cercles visuels -->
+    <div class="dots-container">
+        <div class="dot" data-key="1"></div>
+        <div class="dot" data-key="2"></div>
+        <div class="dot" data-key="3"></div>
+        <div class="dot" data-key="4"></div>
+        <div class="dot" data-key="5"></div>
+        <div class="dot" data-key="6"></div>
     </div>
 
-    <div class="upload-box">
-        <h3>Screenshot écran d'accueil</h3>
-        <label class="upload-label" for="homeBg">Choisir</label>
-        <input type="file" id="homeBg" class="upload-input" accept="image/*">
-        <img id="prev2" class="preview">
-    </div>
-
-    <button id="startBtn">Démarrer</button>
-
-    <div class="info">
-        💡 <strong>Astuce :</strong> Pour un alignement parfait sur iPhone 13, assure-toi que ton screenshot est pris avec l'interface en mode portrait standard (pas de zoom).
-    </div>
+    <!-- Zones tactiles (invisibles) -->
+    <div class="touch-area touch-1" data-key="1"></div>
+    <div class="touch-area touch-2" data-key="2"></div>
+    <div class="touch-area touch-3" data-key="3"></div>
+    <div class="touch-area touch-4" data-key="4"></div>
+    <div class="touch-area touch-5" data-key="5"></div>
+    <div class="touch-area touch-6" data-key="6"></div>
+    <div class="touch-area touch-7" data-key="7"></div>
+    <div class="touch-area touch-8" data-key="8"></div>
+    <div class="touch-area touch-9" data-key="9"></div>
+    <div class="touch-area touch-0" data-key="0"></div>
 </div>
-
-<!-- LOCKSCREEN - iPhone 13 optimized -->
-<div id="lockscreen" style="display:none;">
-    <div id="dots-overlay">
-        <div class="dot"></div>
-        <div class="dot"></div>
-        <div class="dot"></div>
-        <div class="dot"></div>
-        <div class="dot"></div>
-        <div class="dot"></div>
-    </div>
-
-    <!-- Zones tactiles optimisées pour iPhone 13 -->
-    <div class="touch-zone touch-zone-1" data-k="1"></div>
-    <div class="touch-zone touch-zone-2" data-k="2"></div>
-    <div class="touch-zone touch-zone-3" data-k="3"></div>
-    <div class="touch-zone touch-zone-4" data-k="4"></div>
-    <div class="touch-zone touch-zone-5" data-k="5"></div>
-    <div class="touch-zone touch-zone-6" data-k="6"></div>
-    <div class="touch-zone touch-zone-7" data-k="7"></div>
-    <div class="touch-zone touch-zone-8" data-k="8"></div>
-    <div class="touch-zone touch-zone-9" data-k="9"></div>
-    <div class="touch-zone touch-zone-0" data-k="0"></div>
-</div>
-
-<!-- [Rest of the HTML remains the same as previous version] -->
 
 <script>
-// [JavaScript remains mostly the same, but with these iPhone 13 specific adjustments]
+// Code de déverrouillage par défaut (modifiable)
+const UNLOCK_CODE = "123456";
 
-// Codes de déverrouillage
-const CODES = {
-    "123456": "Brad Pitt",
-    "654321": "Emma Watson",
-    "111111": "Leonardo DiCaprio",
-    "000000": "Admin",
-    "121212": "Guest",
-    "131313": "iPhone 13" // Code spécial pour tester l'alignement
-};
+// Gestion des touches
+document.querySelectorAll('.touch-area').forEach(area => {
+    area.addEventListener('touchstart', handleTouch);
+});
 
-// Positionnement précis pour iPhone 13
+function handleTouch(e) {
+    e.preventDefault();
+    const key = e.currentTarget.getAttribute('data-key');
+    const dot = document.querySelector(`.dot[data-key="${key}"]`);
+
+    // Animation de pression
+    dot.classList.add('filled');
+    setTimeout(() => {
+        dot.classList.remove('filled');
+    }, 300);
+
+    // Logique de déverrouillage (à compléter)
+    console.log(`Touche ${key} pressée`);
+}
+
+// Ajustement automatique pour iPhone 13
 function adjustForiPhone13() {
-    // Détection spécifique iPhone 13
-    if (/iPhone13/.test(navigator.userAgent) ||
-        (window.screen.height === 844 && window.screen.width === 390) ||
-        (window.screen.height === 852 && window.screen.width === 393)) {
+    const isiPhone13 = /iPhone13/.test(navigator.userAgent) ||
+                      (window.screen.height === 844 && window.screen.width === 390);
 
-        document.body.style.setProperty('--dots-top', '25.5%');
-
-        // Ajustement fin si nécessaire
-        const dotsOverlay = document.getElementById('dots-overlay');
-        if (dotsOverlay) {
-            dotsOverlay.style.top = '25.5%';
-        }
+    if (isiPhone13) {
+        document.documentElement.style.setProperty('--dots-top', 'calc(50vh - 90px)');
     }
 }
 
-// Appeler cette fonction au chargement et après ajustement
-window.addEventListener('load', adjustForiPhone13);
-window.addEventListener('resize', adjustForiPhone13);
+// Initialisation
+window.addEventListener('load', () => {
+    adjustForiPhone13();
 
-// [Rest of the JavaScript remains the same as previous version]
+    // Charger l'image de fond si disponible
+    const bgImage = localStorage.getItem('lockscreenBg');
+    if (bgImage) {
+        document.getElementById('lockscreen').style.backgroundImage = `url(${bgImage})`;
+    }
+});
 </script>
 </body>
 </html>
