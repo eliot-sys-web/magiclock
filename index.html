@@ -386,6 +386,11 @@ let lockBg = null, homeBg = null;
 let longPressTimer = null;
 let settingsVisible = false;
 
+<script>
+const CODES = {"123456":"Brad Pitt","654321":"Emma Watson","111111":"Leonardo DiCaprio"};
+let inp = "", first = null, unlock = false;
+let lockBg = null, homeBg = null;
+
 const setup = document.getElementById('setup');
 const lock = document.getElementById('lockscreen');
 const home = document.getElementById('homescreen');
@@ -393,33 +398,12 @@ const dotsOverlay = document.getElementById('dots-overlay');
 const dots = document.querySelectorAll('.dot');
 const btn = document.getElementById('settingsBtn');
 
-// Charger les images sauvegardées au démarrage
-window.addEventListener('load', function() {
-    // Check si reset demandé via URL
-    const urlParams = new URLSearchParams(window.location.search);
-    if(urlParams.get('reset') === '1') {
-        localStorage.clear();
-        window.location.href = window.location.pathname;
-        return;
-    }
-    
-    const savedLock = localStorage.getItem('lockscreen_bg');
-    const savedHome = localStorage.getItem('homescreen_bg');
-    
-    if(savedLock && savedHome) {
-        lockBg = savedLock;
-        homeBg = savedHome;
-        start();
-    }
-});
-
 document.getElementById('lockBg').onchange = e => {
     const f = e.target.files[0];
     if(f) {
         const r = new FileReader();
         r.onload = ev => {
             lockBg = ev.target.result;
-            localStorage.setItem('lockscreen_bg', lockBg);
             document.getElementById('prev1').src = lockBg;
             document.getElementById('prev1').classList.add('show');
             check();
@@ -434,7 +418,6 @@ document.getElementById('homeBg').onchange = e => {
         const r = new FileReader();
         r.onload = ev => {
             homeBg = ev.target.result;
-            localStorage.setItem('homescreen_bg', homeBg);
             document.getElementById('prev2').src = homeBg;
             document.getElementById('prev2').classList.add('show');
             check();
