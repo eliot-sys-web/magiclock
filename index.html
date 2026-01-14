@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>iPhone Lock Screen</title>
 <!-- Viewport pour mobile -->
+<!-- Viewport pour mobile -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 
 <!-- Mode plein écran iOS -->
@@ -23,18 +24,26 @@
         padding: 0;
         box-sizing: border-box;
         -webkit-tap-highlight-color: transparent;
-        user-select: none;
+    }
+
+    html, body {
+        width: 100%;
+        height: 100%;
     }
 
     body {
         font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-        overflow: hidden;
         background: #000;
-        width: 100vw;
-        height: 100vh;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+
+    /* Bloquer le scroll uniquement quand on est sur lock/home */
+    body.no-scroll {
+        overflow: hidden;
         position: fixed;
-        top: 0;
-        left: 0;
+        width: 100%;
+        height: 100%;
     }
 
     /* LOCKSCREEN - Screenshot en fond */
@@ -44,12 +53,13 @@
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
-        display: flex;
+        display: none;
         flex-direction: column;
         position: fixed;
         top: 0;
         left: 0;
         background-color: #000;
+        z-index: 100;
     }
 
     #lockscreen.custom {
@@ -141,18 +151,15 @@
 
     /* SETUP */
     #setup {
-        width: 100vw;
-        height: 100vh;
+        width: 100%;
+        min-height: 100vh;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
-        padding: 20px;
-        position: fixed;
-        top: 0;
-        left: 0;
-        z-index: 300;
+        justify-content: flex-start;
+        padding: 40px 20px;
+        padding-bottom: 60px;
     }
 
     #setup h1 {
@@ -366,7 +373,7 @@
 </style>
 </head>
 <body>
-<!-- SETUP (Configuration initiale) -->
+   <!-- SETUP (Configuration initiale) -->
 <div id="setup">
     <h1>📱 Configuration iPhone Lock</h1>
     
@@ -505,6 +512,9 @@
         
         setup.style.display = 'none';
         lock.style.display = 'flex';
+        
+        // Bloquer le scroll quand on est sur le lockscreen
+        document.body.classList.add('no-scroll');
         
         btn.classList.add('show');
         settingsBtn.classList.add('show');
@@ -714,7 +724,7 @@
 
     // Gestion du mouvement pendant le drag
     document.addEventListener('mousemove', doDrag);
-    document.addEventListener('touchmove', doDrag);
+    document.addEventListener('touchmove', doDrag, {passive: false});
 
     function doDrag(e) {
         if (!draggedElement) return;
@@ -763,6 +773,10 @@
         home.style.display = 'none';
         lock.style.display = 'none';
         setup.style.display = 'flex';
+        
+        // Réactiver le scroll
+        document.body.classList.remove('no-scroll');
+        
         btn.classList.remove('show');
         settingsBtn.classList.remove('show');
         document.getElementById('menu').classList.remove('show');
