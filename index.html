@@ -13,6 +13,7 @@
 <!-- Apple Touch Icons -->
 <link rel="apple-touch-icon" href="/magiclock/Lock180.png">
 <link rel="manifest" href="/magiclock/manifest.json">
+
 <style>
 * {
     margin: 0;
@@ -35,16 +36,20 @@ body {
     padding: 0;
 }
 
-/* LOCKSCREEN - Screenshot en fond */
+/* LOCKSCREEN - Screenshot en fond PLEIN ÉCRAN */
 #lockscreen {
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     display: flex;
     flex-direction: column;
-    position: relative;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
 }
 
 #lockscreen.custom {
@@ -615,10 +620,10 @@ function adjustGap() {
 function resetDots() {
     localStorage.removeItem('dots_position');
     localStorage.removeItem('dots_gap');
-    dotsOverlay.style.top = '23.8%';
+    dotsOverlay.style.top = '24.2%';
     dotsOverlay.style.left = '50%';
     dotsOverlay.style.transform = 'translateX(-50%)';
-    dotsOverlay.style.gap = '14px';
+    dotsOverlay.style.gap = '17px';
     document.getElementById('menu').classList.remove('show');
     alert('Position et espacement réinitialisés !');
 }
