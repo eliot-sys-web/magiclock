@@ -11,8 +11,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#000000">
 <!-- Apple Touch Icons -->
-<link rel="apple-touch-icon" href="/magiclock/Lock180.png">
-<link rel="manifest" href="/magiclock/manifest.json">
+<link rel="apple-touch-icon" href="/iphone-lock/Lock180.png">
+<link rel="manifest" href="/iphone-lock/manifest.json">
 <style>
 * {
     margin: 0;
@@ -53,9 +53,6 @@ body {
 
 #lockscreen.custom {
     background-image: var(--bg-lock);
-    background-size: cover; /* ou 100% 100% si tu veux étirer */
-    background-position: center;
-    background-repeat: no-repeat;
 }
 
 /* Overlay pour les ronds dynamiques - Calculé depuis ton screenshot */
@@ -382,12 +379,12 @@ body.adjust-individual .dot.dragging {
     <div class="menu-opt" onclick="location.reload()">🔄 Recommencer</div>
 </div>
 
-
-
 <script>
 const CODES = {"123456":"Brad Pitt","654321":"Emma Watson","111111":"Leonardo DiCaprio"};
 let inp = "", first = null, unlock = false;
 let lockBg = null, homeBg = null;
+let longPressTimer = null;
+let settingsVisible = false;
 
 const setup = document.getElementById('setup');
 const lock = document.getElementById('lockscreen');
@@ -396,12 +393,33 @@ const dotsOverlay = document.getElementById('dots-overlay');
 const dots = document.querySelectorAll('.dot');
 const btn = document.getElementById('settingsBtn');
 
+// Charger les images sauvegardées au démarrage
+window.addEventListener('load', function() {
+    // Check si reset demandé via URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if(urlParams.get('reset') === '1') {
+        localStorage.clear();
+        window.location.href = window.location.pathname;
+        return;
+    }
+    
+    const savedLock = localStorage.getItem('lockscreen_bg');
+    const savedHome = localStorage.getItem('homescreen_bg');
+    
+    if(savedLock && savedHome) {
+        lockBg = savedLock;
+        homeBg = savedHome;
+        start();
+    }
+});
+
 document.getElementById('lockBg').onchange = e => {
     const f = e.target.files[0];
     if(f) {
         const r = new FileReader();
         r.onload = ev => {
             lockBg = ev.target.result;
+            localStorage.setItem('lockscreen_bg', lockBg);
             document.getElementById('prev1').src = lockBg;
             document.getElementById('prev1').classList.add('show');
             check();
@@ -416,6 +434,7 @@ document.getElementById('homeBg').onchange = e => {
         const r = new FileReader();
         r.onload = ev => {
             homeBg = ev.target.result;
+            localStorage.setItem('homescreen_bg', homeBg);
             document.getElementById('prev2').src = homeBg;
             document.getElementById('prev2').classList.add('show');
             check();
@@ -443,7 +462,6 @@ function start() {
     lock.style.display = 'flex';
     
     // Charger la position et l'espacement sauvegardés
-   
     const savedPosition = localStorage.getItem('dots_position');
     if(savedPosition) {
         const pos = JSON.parse(savedPosition);
@@ -472,23 +490,22 @@ function start() {
     
     // Appui long pour afficher/masquer settings
     lock.addEventListener('mousedown', startLongPress);
-    lock.addEventListener('touchstart', startLongPress, {passive: false});
+    lock.addEventListener('touchstart', startLongPress, {passive: true});
     lock.addEventListener('mouseup', cancelLongPress);
     lock.addEventListener('touchend', cancelLongPress, {passive: true});
     lock.addEventListener('mousemove', cancelLongPress);
-    lock.addEventListener('touchmove', cancelLongPress, {passive: false});
+    lock.addEventListener('touchmove', cancelLongPress, {passive: true});
     
     // Appui long sur homescreen pour revenir
     home.addEventListener('mousedown', startLongPressHome);
-    home.addEventListener('touchstart', startLongPressHome, {passive: false});
+    home.addEventListener('touchstart', startLongPressHome, {passive: true});
     home.addEventListener('mouseup', cancelLongPress);
     home.addEventListener('touchend', cancelLongPress, {passive: true});
     home.addEventListener('mousemove', cancelLongPress);
-    home.addEventListener('touchmove', cancelLongPress, {passive: false});
+    home.addEventListener('touchmove', cancelLongPress, {passive: true});
 }
 
 function startLongPress(e) {
-    e.preventDefault();
     if(unlock) return;
     longPressTimer = setTimeout(() => {
         settingsVisible = !settingsVisible;
@@ -518,7 +535,6 @@ function startLongPressHome(e) {
 
 function cancelLongPress() {
     clearTimeout(longPressTimer);
-    e.preventDefault();
 }
 
 // Zones tactiles
