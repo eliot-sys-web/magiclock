@@ -1,176 +1,395 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="apple-touch-icon" href="/iphone-lock/Lock180.png">
+    <meta charset="UTF-8">
+    <meta name="viewport"="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>iPhone</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-<!-- Manifest PWA pour Android/Chrome -->
-<link rel="manifest" href="/iphone-lock/manifest.json">
-<title>iPhone 13 Lock Screen</title>
-<style>
-:root {
-    --dot-size: 18px;
-    --dot-spacing: 17px;
-    --dots-top: calc(50vh - 100px); /* Position optimale pour iPhone 13 */
-}
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+            background: #000;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
-}
+        #lockscreen {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1e 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 60px 0 40px;
+            position: relative;
+        }
 
-body {
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    overflow: hidden;
-    background: #000;
-    width: 100vw;
-    height: 100vh;
-    position: fixed;
-    top: 0;
-    left: 0;
-    touch-action: manipulation;
-}
+        #homescreen {
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: none;
+            position: relative;
+        }
 
-#lockscreen {
-    width: 100%;
-    height: 100%;
-    background-size: cover;
-    background-position: center;
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 100;
-}
+        #homescreen img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
 
-.dots-container {
-    position: absolute;
-    top: var(--dots-top);
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: var(--dot-spacing);
-    z-index: 10;
-    pointer-events: none;
-}
+        #celebrity-info {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.3);
+            text-align: right;
+            font-family: monospace;
+            pointer-events: none;
+        }
 
-.dot {
-    width: var(--dot-size);
-    height: var(--dot-size);
-    border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0.3);
-    background: transparent;
-    transition: all 0.1s ease;
-}
+        .time {
+            color: white;
+            font-size: 72px;
+            font-weight: 300;
+            letter-spacing: -2px;
+            margin-top: 20px;
+        }
 
-.dot.filled {
-    background: white;
-    border-color: white;
-}
+        .date {
+            color: white;
+            font-size: 18px;
+            font-weight: 500;
+            margin-top: 8px;
+            opacity: 0.9;
+        }
 
-/* Zones tactiles invisibles (positionnement exact iPhone 13) */
-.touch-area {
-    position: absolute;
-    border-radius: 50%;
-    z-index: 5;
-    opacity: 0;
-}
+        .lock-icon {
+            width: 22px;
+            height: 22px;
+            border: 2.5px solid white;
+            border-radius: 5px;
+            position: relative;
+            margin-bottom: 20px;
+        }
 
-.touch-1 { left: 25%; top: 40%; width: 20%; height: 10%; }
-.touch-2 { left: 50%; top: 40%; width: 20%; height: 10%; }
-.touch-3 { left: 75%; top: 40%; width: 20%; height: 10%; }
-.touch-4 { left: 25%; top: 50%; width: 20%; height: 10%; }
-.touch-5 { left: 50%; top: 50%; width: 20%; height: 10%; }
-.touch-6 { left: 75%; top: 50%; width: 20%; height: 10%; }
-.touch-7 { left: 25%; top: 60%; width: 20%; height: 10%; }
-.touch-8 { left: 50%; top: 60%; width: 20%; height: 10%; }
-.touch-9 { left: 75%; top: 60%; width: 20%; height: 10%; }
-.touch-0 { left: 50%; top: 70%; width: 20%; height: 10%; }
+        .lock-icon::before {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 10px;
+            border: 2.5px solid white;
+            border-bottom: none;
+            border-radius: 10px 10px 0 0;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
 
-/* Mode debug - décommente pour voir les zones */
-/*
-.touch-area {
-    background: rgba(255,0,0,0.2);
-    border: 1px solid red;
-    opacity: 1;
-}
-*/
-</style>
+        .passcode-container {
+            margin-top: auto;
+            margin-bottom: 20px;
+        }
+
+        .passcode-text {
+            color: white;
+            font-size: 20px;
+            text-align: center;
+            margin-bottom: 25px;
+            font-weight: 400;
+            letter-spacing: -0.3px;
+        }
+
+        .passcode-dots {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .dot {
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .dot.filled {
+            background: white;
+            border-color: white;
+            transform: scale(1.1);
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            padding: 0 30px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .key {
+            width: 78px;
+            height: 78px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            color: white;
+            font-size: 32px;
+            font-weight: 300;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            user-select: none;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            margin: 0 auto;
+        }
+
+        .key:active {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(0.95);
+        }
+
+        .key-bottom {
+            font-size: 10px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-top: -5px;
+            opacity: 0;
+        }
+
+        .key-delete {
+            background: none;
+            border: none;
+            font-size: 18px;
+        }
+
+        .key-empty {
+            background: none;
+            border: none;
+        }
+
+        .error-shake {
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+            20%, 40%, 60%, 80% { transform: translateX(10px); }
+        }
+
+        .error-text {
+            color: #ff3b30;
+            font-size: 14px;
+            text-align: center;
+            margin-top: -15px;
+            margin-bottom: 15px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .error-text.show {
+            opacity: 1;
+        }
+
+        @media (max-width: 400px) {
+            .key {
+                width: 70px;
+                height: 70px;
+                font-size: 28px;
+            }
+            .time {
+                font-size: 60px;
+            }
+        }
+    </style>
 </head>
 <body>
-<div id="lockscreen">
-    <!-- Cercles visuels -->
-    <div class="dots-container">
-        <div class="dot" data-key="1"></div>
-        <div class="dot" data-key="2"></div>
-        <div class="dot" data-key="3"></div>
-        <div class="dot" data-key="4"></div>
-        <div class="dot" data-key="5"></div>
-        <div class="dot" data-key="6"></div>
+    <div id="lockscreen">
+        <div style="text-align: center;">
+            <div class="time" id="time">12:00</div>
+            <div class="date" id="date">lundi 20 janvier</div>
+        </div>
+
+        <div class="lock-icon"></div>
+
+        <div class="passcode-container">
+            <div class="passcode-text">Saisir le code</div>
+            <div class="error-text" id="error-text">Code incorrect</div>
+            <div class="passcode-dots" id="dots">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+
+            <div class="keypad">
+                <div class="key" data-key="1">1</div>
+                <div class="key" data-key="2">2</div>
+                <div class="key" data-key="3">3</div>
+                <div class="key" data-key="4">4</div>
+                <div class="key" data-key="5">5</div>
+                <div class="key" data-key="6">6</div>
+                <div class="key" data-key="7">7</div>
+                <div class="key" data-key="8">8</div>
+                <div class="key" data-key="9">9</div>
+                <div class="key key-empty"></div>
+                <div class="key" data-key="0">0</div>
+                <div class="key key-delete" data-key="delete">⌫</div>
+            </div>
+        </div>
     </div>
 
-    <!-- Zones tactiles (invisibles) -->
-    <div class="touch-area touch-1" data-key="1"></div>
-    <div class="touch-area touch-2" data-key="2"></div>
-    <div class="touch-area touch-3" data-key="3"></div>
-    <div class="touch-area touch-4" data-key="4"></div>
-    <div class="touch-area touch-5" data-key="5"></div>
-    <div class="touch-area touch-6" data-key="6"></div>
-    <div class="touch-area touch-7" data-key="7"></div>
-    <div class="touch-area touch-8" data-key="8"></div>
-    <div class="touch-area touch-9" data-key="9"></div>
-    <div class="touch-area touch-0" data-key="0"></div>
-</div>
+    <div id="homescreen">
+        <img id="homescreen-image" src="" alt="Écran d'accueil">
+        <div id="celebrity-info"></div>
+    </div>
 
-<script>
-// Code de déverrouillage par défaut (modifiable)
-const UNLOCK_CODE = "123456";
+    <script>
+        // Configuration
+        const CELEBRITY_CODES = {
+            '1234': 'Brad Pitt',
+            '5678': 'Angelina Jolie',
+            '9999': 'Leonardo DiCaprio',
+            '0000': 'Scarlett Johansson',
+            '1111': 'Tom Cruise',
+            '2222': 'Jennifer Lawrence',
+            '3333': 'Ryan Reynolds',
+            '4444': 'Emma Watson',
+            '5555': 'Chris Hemsworth',
+            '6666': 'Margot Robbie'
+        };
 
-// Gestion des touches
-document.querySelectorAll('.touch-area').forEach(area => {
-    area.addEventListener('touchstart', handleTouch);
-});
+        let currentCode = '';
+        let firstAttemptCode = null;
+        let attemptCount = 0;
 
-function handleTouch(e) {
-    e.preventDefault();
-    const key = e.currentTarget.getAttribute('data-key');
-    const dot = document.querySelector(`.dot[data-key="${key}"]`);
+        // Mettre à jour l'heure
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('time').textContent = `${hours}:${minutes}`;
 
-    // Animation de pression
-    dot.classList.add('filled');
-    setTimeout(() => {
-        dot.classList.remove('filled');
-    }, 300);
+            const options = { weekday: 'long', day: 'numeric', month: 'long' };
+            const dateStr = now.toLocaleDateString('fr-FR', options);
+            document.getElementById('date').textContent = dateStr;
+        }
 
-    // Logique de déverrouillage (à compléter)
-    console.log(`Touche ${key} pressée`);
-}
+        updateTime();
+        setInterval(updateTime, 1000);
 
-// Ajustement automatique pour iPhone 13
-function adjustForiPhone13() {
-    const isiPhone13 = /iPhone13/.test(navigator.userAgent) ||
-                      (window.screen.height === 844 && window.screen.width === 390);
+        // Gestion du clavier
+        const dots = document.querySelectorAll('.dot');
+        const errorText = document.getElementById('error-text');
+        const dotsContainer = document.getElementById('dots');
 
-    if (isiPhone13) {
-        document.documentElement.style.setProperty('--dots-top', 'calc(50vh - 90px)');
-    }
-}
+        function updateDots() {
+            dots.forEach((dot, index) => {
+                if (index < currentCode.length) {
+                    dot.classList.add('filled');
+                } else {
+                    dot.classList.remove('filled');
+                }
+            });
+        }
 
-// Initialisation
-window.addEventListener('load', () => {
-    adjustForiPhone13();
+        function showError() {
+            errorText.classList.add('show');
+            dotsContainer.classList.add('error-shake');
+            
+            setTimeout(() => {
+                errorText.classList.remove('show');
+                dotsContainer.classList.remove('error-shake');
+            }, 500);
+        }
 
-    // Charger l'image de fond si disponible
-    const bgImage = localStorage.getItem('lockscreenBg');
-    if (bgImage) {
-        document.getElementById('lockscreen').style.backgroundImage = `url(${bgImage})`;
-    }
-});
-</script>
+        function checkCode() {
+            attemptCount++;
+
+            // Premier essai : enregistrer le code
+            if (attemptCount === 1) {
+                firstAttemptCode = currentCode;
+                currentCode = '';
+                updateDots();
+                showError();
+                return;
+            }
+
+            // Vérifier si c'est un code de célébrité
+            if (CELEBRITY_CODES[currentCode]) {
+                unlock(CELEBRITY_CODES[currentCode]);
+            } else {
+                currentCode = '';
+                updateDots();
+                showError();
+            }
+        }
+
+        function unlock(celebrity) {
+            // Afficher l'écran d'accueil
+            document.getElementById('lockscreen').style.display = 'none';
+            document.getElementById('homescreen').style.display = 'block';
+            
+            // Afficher les informations discrètes
+            const info = document.getElementById('celebrity-info');
+            info.innerHTML = `${celebrity}<br>${firstAttemptCode}`;
+        }
+
+        // Événements clavier
+        document.querySelectorAll('.key').forEach(key => {
+            key.addEventListener('click', function() {
+                const value = this.dataset.key;
+                
+                if (!value) return;
+
+                if (value === 'delete') {
+                    currentCode = currentCode.slice(0, -1);
+                    updateDots();
+                } else if (currentCode.length < 4) {
+                    currentCode += value;
+                    updateDots();
+
+                    if (currentCode.length === 4) {
+                        setTimeout(checkCode, 300);
+                    }
+                }
+            });
+        });
+
+        // Support du clavier physique
+        document.addEventListener('keydown', (e) => {
+            if (document.getElementById('lockscreen').style.display === 'none') return;
+
+            if (e.key >= '0' && e.key <= '9' && currentCode.length < 4) {
+                currentCode += e.key;
+                updateDots();
+                if (currentCode.length === 4) {
+                    setTimeout(checkCode, 300);
+                }
+            } else if (e.key === 'Backspace') {
+                currentCode = currentCode.slice(0, -1);
+                updateDots();
+            }
+        });
+
+        // Charger l'image de l'écran d'accueil
+        // IMPORTANT: Remplacez 'votre-image-accueil.jpg' par le chemin de votre capture d'écran
+        document.getElementById('homescreen-image').src = 'votre-image-accueil.jpg';
+    </script>
 </body>
 </html>
