@@ -1,8 +1,12 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-   
+<meta charset="UTF-8">
+<title>iPhone Lock Screen</title>
 
+<!-- Viewport pour mobile -->
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <!-- Mode plein écran iOS -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -13,392 +17,696 @@
 
 <!-- Manifest PWA pour Android/Chrome -->
 <link rel="manifest" href="/iphone-lock/manifest.json">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
-            background: #000;
-            overflow: hidden;
-            width: 100vw;
-            height: 100vh;
-        }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    padding : 0;
+    overflow: hidden;
+    background: #000;
+    width: 100vw;
+    height: 100vh;
+    body {
+      margin: 0;
+      padding: 0;
+      /* Padding dynamique pour éviter les chevauchements */
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+      min-height: 100vh; /* Assure que le body prend toute la hauteur */
+      box-sizing: border-box; /* Inclut les paddings dans la hauteur */
+    }
+}
 
-        #lockscreen {
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1e 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            padding: 60px 0 40px;
-            position: relative;
-        }
+/* LOCKSCREEN - Screenshot en fond */
+#lockscreen {
+    width: 100vw;
+    height: 100vh;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background-color: #000;
+}
 
-        #homescreen {
-            width: 100%;
-            height: 100%;
-            background: #000;
-            display: none;
-            position: relative;
-        }
+#lockscreen.custom {
+    background-image: var(--bg-lock);
+}
 
-        #homescreen img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+/* Overlay pour les ronds dynamiques */
+#dots-overlay {
+    position: absolute;
+    top: 23%; /* Ajustable selon ton écran */
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 19px;
+    z-index: 10;
+}
 
-        #celebrity-info {
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            font-size: 10px;
-            color: rgba(255, 255, 255, 0.3);
-            text-align: right;
-            font-family: monospace;
-            pointer-events: none;
-        }
+.dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0);
+    background: transparent;
+    transition: all 0.15s ease;
+}
 
-        .time {
-            color: white;
-            font-size: 72px;
-            font-weight: 300;
-            letter-spacing: -2px;
-            margin-top: 20px;
-        }
+.dot.filled {
+    background: white;
+    border-color: white;
+}
 
-        .date {
-            color: white;
-            font-size: 18px;
-            font-weight: 500;
-            margin-top: 8px;
-            opacity: 0.9;
-        }
+/* Zones tactiles invisibles sur le clavier */ 
+.touch-zone { 
+    position: absolute; 
+    border-radius: 50%; 
+    z-index: 5; 
+    cursor: pointer; 
+}
+/* Pour debug : afficher les zones */
+body.debug .touch-zone {
+    background: rgba(255,0,0,0.3);
+    border: 2px solid red;
+}
 
-        .lock-icon {
-            width: 22px;
-            height: 22px;
-            border: 2.5px solid white;
-            border-radius: 5px;
-            position: relative;
-            margin-bottom: 20px;
-        }
+/* HOMESCREEN */
+#homescreen {
+    width: 100vw;
+    height: 100vh;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 200;
+    background-color: #000;
+}
 
-        .lock-icon::before {
-            content: '';
-            position: absolute;
-            width: 14px;
-            height: 10px;
-            border: 2.5px solid white;
-            border-bottom: none;
-            border-radius: 10px 10px 0 0;
-            top: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
+#homescreen.custom {
+    background-image: var(--bg-home);
+}
 
-        .passcode-container {
-            margin-top: auto;
-            margin-bottom: 20px;
-        }
+#homescreen.show {
+    display: block;
+}
 
-        .passcode-text {
-            color: white;
-            font-size: 20px;
-            text-align: center;
-            margin-bottom: 25px;
-            font-weight: 400;
-            letter-spacing: -0.3px;
-        }
+#secret {
+    position: absolute;
+    bottom: 30px;
+    right: 20px;
+    color: rgba(0,0,0,0.50);
+    font-size: 10px;
+    text-align: right;
+    line-height: 1.5;
+}
 
-        .passcode-dots {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin-bottom: 30px;
-        }
+/* SETUP */
+#setup {
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow-y: auto;
+    position: fixed;
+    top: 0;
+    left: 0;
+}
 
-        .dot {
-            width: 14px;
-            height: 14px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            transition: all 0.2s ease;
-        }
+#setup h1 {
+    font-size: 26px;
+    color: white;
+    margin-bottom: 30px;
+    font-weight: 600;
+    text-align: center;
+}
 
-        .dot.filled {
-            background: white;
-            border-color: white;
-            transform: scale(1.1);
-        }
+.upload-box {
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 16px;
+    width: 100%;
+    max-width: 340px;
+}
 
-        .keypad {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 18px;
-            padding: 0 30px;
-            width: 100%;
-            max-width: 400px;
-        }
+.upload-box h3 {
+    color: white;
+    font-size: 16px;
+    margin-bottom: 12px;
+    font-weight: 600;
+}
 
-        .key {
-            width: 78px;
-            height: 78px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            color: white;
-            font-size: 32px;
-            font-weight: 300;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            user-select: none;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            margin: 0 auto;
-        }
+.upload-label {
+    display: inline-block;
+    background: white;
+    color: #667eea;
+    padding: 12px 28px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+}
 
-        .key:active {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(0.95);
-        }
+.upload-input { display: none; }
 
-        .key-bottom {
-            font-size: 10px;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            margin-top: -5px;
-            opacity: 0;
-        }
+.preview {
+    margin-top: 12px;
+    max-width: 100%;
+    max-height: 120px;
+    border-radius: 10px;
+    display: none;
+}
 
-        .key-delete {
-            background: none;
-            border: none;
-            font-size: 18px;
-        }
+.preview.show { display: block; }
 
-        .key-empty {
-            background: none;
-            border: none;
-        }
+#startBtn {
+    background: white;
+    color: #667eea;
+    border: none;
+    padding: 16px 48px;
+    border-radius: 14px;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 24px;
+    display: none;
+}
 
-        .error-shake {
-            animation: shake 0.5s;
-        }
+#startBtn.show { display: inline-block; }
 
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
-            20%, 40%, 60%, 80% { transform: translateX(10px); }
-        }
+.skip { 
+    color: rgba(255,255,255,0.8); 
+    margin-top: 16px; 
+    cursor: pointer; 
+    font-size: 15px;
+    text-decoration: underline;
+}
 
-        .error-text {
-            color: #ff3b30;
-            font-size: 14px;
-            text-align: center;
-            margin-top: -15px;
-            margin-bottom: 15px;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
+.info {
+    background: rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 20px;
+    max-width: 340px;
+    color: white;
+    font-size: 13px;
+    line-height: 1.5;
+}
 
-        .error-text.show {
-            opacity: 1;
-        }
+/* SETTINGS */
+#settingsBtn {
+    position: fixed;
+    top: 60px;
+    left: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    font-size: 18px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 300;
+    cursor: pointer;
+}
 
-        @media (max-width: 400px) {
-            .key {
-                width: 70px;
-                height: 70px;
-                font-size: 28px;
-            }
-            .time {
-                font-size: 60px;
-            }
-        }
-    </style>
+#settingsBtn.show { display: flex; }
+
+#menu {
+    position: fixed;
+    top: 110px;
+    left: 20px;
+    background: rgba(30,30,30,0.95);
+    backdrop-filter: blur(40px);
+    border-radius: 14px;
+    padding: 8px;
+    display: none;
+    z-index: 301;
+    min-width: 200px;
+    border: 0.5px solid rgba(255,255,255,0.1);
+}
+
+#menu.show { display: block; }
+
+.menu-opt {
+    padding: 12px 14px;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+.menu-opt:active { background: rgba(255,255,255,0.1); }
+
+@keyframes shake {
+    0%, 100% { transform: translateX(-50%); }
+    25% { transform: translateX(calc(-50% - 10px)); }
+    75% { transform: translateX(calc(-50% + 10px)); }
+}
+
+
+body.adjust-individual .dot {
+    cursor: move;
+    border: 2px solid orange !important;
+    background: rgba(255,165,0,0.3) !important;
+    position: relative;
+    z-index: 100;
+}
+
+body.adjust-individual .dot.dragging {
+    border-color: red !important;
+    background: rgba(255,0,0,0.5) !important;
+    z-index: 101;
+}
+
+body.adjust-individual #dots-overlay {
+    background: rgba(255,255,0,0.1);
+    padding: 10px;
+    border: 2px dashed orange;
+}
+</style>
 </head>
 <body>
-    <div id="lockscreen">
-        <div style="text-align: center;">
-            <div class="time" id="time">12:00</div>
-            <div class="date" id="date">lundi 20 janvier</div>
-        </div>
 
-        <div class="lock-icon"></div>
-
-        <div class="passcode-container">
-            <div class="passcode-text">Saisir le code</div>
-            <div class="error-text" id="error-text">Code incorrect</div>
-            <div class="passcode-dots" id="dots">
-                <div class="dot"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
-            </div>
-
-            <div class="keypad">
-                <div class="key" data-key="1">1</div>
-                <div class="key" data-key="2">2</div>
-                <div class="key" data-key="3">3</div>
-                <div class="key" data-key="4">4</div>
-                <div class="key" data-key="5">5</div>
-                <div class="key" data-key="6">6</div>
-                <div class="key" data-key="7">7</div>
-                <div class="key" data-key="8">8</div>
-                <div class="key" data-key="9">9</div>
-                <div class="key key-empty"></div>
-                <div class="key" data-key="0">0</div>
-                <div class="key key-delete" data-key="delete">⌫</div>
-            </div>
-        </div>
+<!-- SETUP -->
+<div id="setup">
+    <h1>📱 iPhone Lock Screen<br>Overlay Method</h1>
+    
+    <div class="upload-box">
+        <h3>Screenshot écran verrouillé</h3>
+        <label class="upload-label" for="lockBg">Choisir</label>
+        <input type="file" id="lockBg" class="upload-input" accept="image/*">
+        <img id="prev1" class="preview">
     </div>
-
-    <div id="homescreen">
-        <img id="homescreen-image" src="" alt="Écran d'accueil">
-        <div id="celebrity-info"></div>
+    
+    <div class="upload-box">
+        <h3>Screenshot écran d'accueil</h3>
+        <label class="upload-label" for="homeBg">Choisir</label>
+        <input type="file" id="homeBg" class="upload-input" accept="image/*">
+        <img id="prev2" class="preview">
     </div>
+    
+    <button id="startBtn">Démarrer</button>
+    
+    <div class="info">
+        💡 <strong>Astuce :</strong> Les ronds se superposeront à ton screenshot. Utilise les réglages pour ajuster leur position si besoin.
+    </div>
+</div>
 
-    <script>
-        // Configuration
-        const CELEBRITY_CODES = {
-            '1234': 'Brad Pitt',
-            '5678': 'Angelina Jolie',
-            '9999': 'Leonardo DiCaprio',
-            '0000': 'Scarlett Johansson',
-            '1111': 'Tom Cruise',
-            '2222': 'Jennifer Lawrence',
-            '3333': 'Ryan Reynolds',
-            '4444': 'Emma Watson',
-            '5555': 'Chris Hemsworth',
-            '6666': 'Margot Robbie'
+<!-- LOCKSCREEN -->
+<div id="lockscreen" style="display:none;">
+    <!-- Ronds dynamiques superposés -->
+    <div id="dots-overlay">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+    </div>
+    
+    <!-- Zones tactiles invisibles (positionnées sur les touches du screenshot) -->
+    <!-- Basé sur ton screenshot iPhone 13 -->
+    <div class="touch-zone" data-k="1" style="left:14%; top:36%; width:22%; height:9%;"></div>
+    <div class="touch-zone" data-k="2" style="left:39%; top:36%; width:22%; height:9%;"></div>
+    <div class="touch-zone" data-k="3" style="left:64%; top:36%; width:22%; height:9%;"></div>
+    
+    <div class="touch-zone" data-k="4" style="left:14%; top:47%; width:22%; height:9%;"></div>
+    <div class="touch-zone" data-k="5" style="left:39%; top:47%; width:22%; height:9%;"></div>
+    <div class="touch-zone" data-k="6" style="left:64%; top:47%; width:22%; height:9%;"></div>
+    
+    <div class="touch-zone" data-k="7" style="left:14%; top:58%; width:22%; height:9%;"></div>
+    <div class="touch-zone" data-k="8" style="left:39%; top:58%; width:22%; height:9%;"></div>
+    <div class="touch-zone" data-k="9" style="left:64%; top:58%; width:22%; height:9%;"></div>
+    
+    <div class="touch-zone" data-k="0" style="left:39%; top:69%; width:22%; height:9%;"></div>
+</div>
+
+<!-- HOMESCREEN -->
+<div id="homescreen">
+    <div id="secret"></div>
+</div>
+
+
+
+<script>
+const CODES = {
+  "200874": "Amy Adams",
+  "300488": "Ana de Armas",
+  "060780": "Eva Green",
+  "300485": "Gal Gadot",
+  "010785": "Léa Seydoux",
+  "290470": "Uma Thurman",
+  "190678": "Zoe Saldana",
+
+  "150490": "Emma Watson",
+  "150459": "Emma Thompson",
+  "061188": "Emma Stone",
+  "121182": "Anne Hathaway",
+  "140569": "Cate Blanchett",
+  "111162": "Demi Moore",
+  "051075": "Kate Winslet",
+  "300763": "Lisa Kudrow",
+
+  "281067": "Julia Roberts",
+  "191162": "Jodie Foster",
+  "270902": "Jenna Ortega",
+  "150776": "Diane Kruger",
+
+  "230283": "Emily Blunt",
+  "260385": "Keira Knightley",
+  "220649": "Meryl Streep",
+  "280968": "Naomi Watts",
+  "220376": "Reese Witherspoon",
+  "051160": "Tilda Swinton",
+
+  "020790": "Margot Robbie",
+  "300975": "Marion Cotillard",
+  "300964": "Monica Bellucci",
+  "260764": "Sandra Bullock",
+  "100358": "Sharon Stone",
+  "171170": "Sophie Marceau",
+  "120997": "Sydney Sweeney",
+  "090876": "Audrey Tautou",
+  "231086": "Emilia Clarke",
+  "200667": "Nicole Kidman",
+  "171178": "Rachel McAdams",
+
+  "300872": "Cameron Diaz",
+  "250870": "Claudia Schiffer",
+  "280481": "Jessica Alba",
+  "090490": "Kristen Stewart",
+  "010626": "Marilyn Monroe",
+  "090681": "Natalie Portman",
+  "010996": "Zendaya",
+  "221184": "Scarlett Johansson",
+
+  "040675": "Angelina Jolie",
+  "110269": "Jennifer Aniston",
+  "280934": "Brigitte Bardot",
+  "280474": "Penelope Cruz",
+  "150890": "Jennifer Lawrence",
+  "240769": "Jennifer Lopez",
+  "031260": "Julianne Moore",
+  "070875": "Charlize Theron",
+  "151191": "Shailene Woodley",
+
+  "160386": "Alexandra Daddario",
+  "150664": "Courteney Cox",
+  "161089": "Elizabeth Olsen",
+  "081049": "Sigourney Weaver"
+};
+let inp = "", first = null, unlock = false;
+let lockBg = null, homeBg = null;
+
+const setup = document.getElementById('setup');
+const lock = document.getElementById('lockscreen');
+const home = document.getElementById('homescreen');
+const dotsOverlay = document.getElementById('dots-overlay');
+const dots = document.querySelectorAll('.dot');
+const btn = document.getElementById('settingsBtn');
+
+document.getElementById('lockBg').onchange = e => {
+    const f = e.target.files[0];
+    if(f) {
+        const r = new FileReader();
+        r.onload = ev => {
+            lockBg = ev.target.result;
+            document.getElementById('prev1').src = lockBg;
+            document.getElementById('prev1').classList.add('show');
+            check();
         };
+        r.readAsDataURL(f);
+    }
+};
 
-        let currentCode = '';
-        let firstAttemptCode = null;
-        let attemptCount = 0;
+document.getElementById('homeBg').onchange = e => {
+    const f = e.target.files[0];
+    if(f) {
+        const r = new FileReader();
+        r.onload = ev => {
+            homeBg = ev.target.result;
+            document.getElementById('prev2').src = homeBg;
+            document.getElementById('prev2').classList.add('show');
+            check();
+        };
+        r.readAsDataURL(f);
+    }
+};
 
-        // Mettre à jour l'heure
-        function updateTime() {
-            const now = new Date();
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            document.getElementById('time').textContent = `${hours}:${minutes}`;
+function check() {
+    if(lockBg && homeBg) document.getElementById('startBtn').classList.add('show');
+}
 
-            const options = { weekday: 'long', day: 'numeric', month: 'long' };
-            const dateStr = now.toLocaleDateString('fr-FR', options);
-            document.getElementById('date').textContent = dateStr;
-        }
+document.getElementById('startBtn').onclick = start;
 
-        updateTime();
-        setInterval(updateTime, 1000);
+function start() {
+    if(lockBg) {
+        lock.style.setProperty('--bg-lock', `url(${lockBg})`);
+        lock.classList.add('custom');
+    }
+    if(homeBg) {
+        home.style.setProperty('--bg-home', `url(${homeBg})`);
+        home.classList.add('custom');
+    }
+    setup.style.display = 'none';
+    lock.style.display = 'flex';
+    btn.classList.add('show');
+}
 
-        // Gestion du clavier
-        const dots = document.querySelectorAll('.dot');
-        const errorText = document.getElementById('error-text');
-        const dotsContainer = document.getElementById('dots');
+// Zones tactiles
+document.querySelectorAll('.touch-zone').forEach(z => {
+    z.onclick = () => { if(!unlock) handle(z.dataset.k); };
+});
 
-        function updateDots() {
-            dots.forEach((dot, index) => {
-                if (index < currentCode.length) {
-                    dot.classList.add('filled');
-                } else {
-                    dot.classList.remove('filled');
-                }
-            });
-        }
-
-        function showError() {
-            errorText.classList.add('show');
-            dotsContainer.classList.add('error-shake');
-            
-            setTimeout(() => {
-                errorText.classList.remove('show');
-                dotsContainer.classList.remove('error-shake');
-            }, 500);
-        }
-
-        function checkCode() {
-            attemptCount++;
-
-            // Premier essai : enregistrer le code
-            if (attemptCount === 1) {
-                firstAttemptCode = currentCode;
-                currentCode = '';
-                updateDots();
-                showError();
-                return;
-            }
-
-            // Vérifier si c'est un code de célébrité
-            if (CELEBRITY_CODES[currentCode]) {
-                unlock(CELEBRITY_CODES[currentCode]);
+function handle(d) {
+    if(inp.length >= 6) return;
+    inp += d;
+    updateDots();
+    if(navigator.vibrate) navigator.vibrate(10);
+    
+    if(inp.length === 6) {
+        setTimeout(() => {
+            if(!first) {
+                first = inp;
+                setTimeout(() => reset(), 600);
+            } else if(CODES[inp]) {
+                unlockScreen(CODES[inp]);
             } else {
-                currentCode = '';
-                updateDots();
-                showError();
+                dotsOverlay.classList.add('shake');
+                setTimeout(() => {
+                    dotsOverlay.classList.remove('shake');
+                    reset();
+                }, 400);
             }
-        }
+        }, 300);
+    }
+}
 
-        function unlock(celebrity) {
-            // Afficher l'écran d'accueil
-            document.getElementById('lockscreen').style.display = 'none';
-            document.getElementById('homescreen').style.display = 'block';
-            
-            // Afficher les informations discrètes
-            const info = document.getElementById('celebrity-info');
-            info.innerHTML = `${celebrity}<br>${firstAttemptCode}`;
-        }
+function updateDots() {
+    dots.forEach((d, i) => {
+        if(i < inp.length) d.classList.add('filled');
+        else d.classList.remove('filled');
+    });
+}
 
-        // Événements clavier
-        document.querySelectorAll('.key').forEach(key => {
-            key.addEventListener('click', function() {
-                const value = this.dataset.key;
-                
-                if (!value) return;
+function reset() {
+    inp = "";
+    updateDots();
+}
 
-                if (value === 'delete') {
-                    currentCode = currentCode.slice(0, -1);
-                    updateDots();
-                } else if (currentCode.length < 4) {
-                    currentCode += value;
-                    updateDots();
+function unlockScreen(celeb) {
+    unlock = true;
+    document.getElementById('secret').innerHTML = `${celeb}<br>${first}`;
+    home.style.display = 'block';
+    home.classList.add('show');
+    lock.style.display = 'none';
+    if(navigator.vibrate) navigator.vibrate([50,100,50]);
+}
+// Settings
+function menu() {
+    document.getElementById('menu').classList.toggle('show');
+}
 
-                    if (currentCode.length === 4) {
-                        setTimeout(checkCode, 300);
-                    }
-                }
-            });
+function toggleDebug() {
+    document.body.classList.toggle('debug');
+    document.getElementById('menu').classList.remove('show');
+}
+
+let adjustMode = false;
+let individualAdjustMode = false;
+let draggedElement = null;
+
+function adjustDots() {
+    // Désactiver le mode individuel si actif
+    if(individualAdjustMode) {
+        toggleIndividualAdjust();
+    }
+    
+    adjustMode = !adjustMode;
+    if(adjustMode) {
+        dotsOverlay.style.background = 'rgba(255,255,0,0.2)';
+        dotsOverlay.style.padding = '10px';
+        dotsOverlay.style.border = '2px dashed orange';
+        dotsOverlay.style.cursor = 'move';
+        
+        // Rendre draggable
+        dotsOverlay.onmousedown = startDrag;
+        dotsOverlay.ontouchstart = startDrag;
+    } else {
+        dotsOverlay.style.background = '';
+        dotsOverlay.style.padding = '';
+        dotsOverlay.style.border = '';
+        dotsOverlay.style.cursor = '';
+        dotsOverlay.onmousedown = null;
+        dotsOverlay.ontouchstart = null;
+    }
+    document.getElementById('menu').classList.remove('show');
+}
+
+function startDrag(e) {
+    if(!adjustMode) return;
+    draggedElement = dotsOverlay;
+    const isTouch = e.type === 'touchstart';
+    const clientX = isTouch ? e.touches[0].clientX : e.clientX;
+    const clientY = isTouch ? e.touches[0].clientY : e.clientY;
+    
+    const rect = dotsOverlay.getBoundingClientRect();
+    dotsOverlay._offsetX = clientX - rect.left;
+    dotsOverlay._offsetY = clientY - rect.top;
+    
+    e.preventDefault();
+}
+
+// Nouvelle fonction pour ajuster les cercles individuellement
+function toggleIndividualAdjust() {
+    // Désactiver le mode groupe si actif
+    if(adjustMode) {
+        adjustDots();
+    }
+    
+    individualAdjustMode = !individualAdjustMode;
+    document.body.classList.toggle('adjust-individual');
+    
+    if(individualAdjustMode) {
+        // Activer le drag sur chaque dot
+        dots.forEach(dot => {
+            dot.style.position = 'relative';
+            dot.onmousedown = startDotDrag;
+            dot.ontouchstart = startDotDrag;
         });
-
-        // Support du clavier physique
-        document.addEventListener('keydown', (e) => {
-            if (document.getElementById('lockscreen').style.display === 'none') return;
-
-            if (e.key >= '0' && e.key <= '9' && currentCode.length < 4) {
-                currentCode += e.key;
-                updateDots();
-                if (currentCode.length === 4) {
-                    setTimeout(checkCode, 300);
-                }
-            } else if (e.key === 'Backspace') {
-                currentCode = currentCode.slice(0, -1);
-                updateDots();
-            }
+    } else {
+        // Désactiver
+        dots.forEach(dot => {
+            dot.onmousedown = null;
+            dot.ontouchstart = null;
         });
+    }
+    document.getElementById('menu').classList.remove('show');
+}
 
-        // Charger l'image de l'écran d'accueil
-        // IMPORTANT: Remplacez 'votre-image-accueil.jpg' par le chemin de votre capture d'écran
-        document.getElementById('homescreen-image').src = 'votre-image-accueil.jpg';
-    </script>
+function startDotDrag(e) {
+    if(!individualAdjustMode) return;
+    
+    draggedElement = e.target;
+    draggedElement.classList.add('dragging');
+    
+    const isTouch = e.type === 'touchstart';
+    const clientX = isTouch ? e.touches[0].clientX : e.clientX;
+    const clientY = isTouch ? e.touches[0].clientY : e.clientY;
+    
+    const rect = draggedElement.getBoundingClientRect();
+    draggedElement._offsetX = clientX - rect.left - rect.width/2;
+    draggedElement._offsetY = clientY - rect.top - rect.height/2;
+    
+    e.preventDefault();
+    e.stopPropagation();
+}
+
+document.addEventListener('mousemove', doDrag);
+document.addEventListener('touchmove', doDrag);
+
+function doDrag(e) {
+    if(!draggedElement) return;
+    
+    const isTouch = e.type === 'touchmove';
+    const clientX = isTouch ? e.touches[0].clientX : e.clientX;
+    const clientY = isTouch ? e.touches[0].clientY : e.clientY;
+    
+    if(draggedElement === dotsOverlay) {
+        // Déplacer tout le groupe
+        const lockRect = lock.getBoundingClientRect();
+        const newLeft = ((clientX - lockRect.left - dotsOverlay._offsetX) / lockRect.width) * 100;
+        const newTop = ((clientY - lockRect.top - dotsOverlay._offsetY) / lockRect.height) * 100;
+        
+        dotsOverlay.style.left = newLeft + '%';
+        dotsOverlay.style.top = newTop + '%';
+        dotsOverlay.style.transform = 'none';
+    } else {
+        // Déplacer un cercle individuel
+        const overlayRect = dotsOverlay.getBoundingClientRect();
+        const newLeft = clientX - overlayRect.left - draggedElement._offsetX - draggedElement.offsetWidth/2;
+        const newTop = clientY - overlayRect.top - draggedElement._offsetY - draggedElement.offsetHeight/2;
+        
+        draggedElement.style.left = newLeft + 'px';
+        draggedElement.style.top = newTop + 'px';
+    }
+    
+    e.preventDefault();
+}
+
+document.addEventListener('mouseup', endDrag);
+document.addEventListener('touchend', endDrag);
+
+function endDrag() {
+    if(draggedElement && draggedElement !== dotsOverlay) {
+        draggedElement.classList.remove('dragging');
+    }
+    draggedElement = null;
+}
+
+function change() {
+    unlock = false;
+    first = null;
+    inp = "";
+    home.classList.remove('show');
+    home.style.display = 'none';
+    lock.style.display = 'none';
+    setup.style.display = 'flex';
+    btn.classList.remove('show');
+    document.getElementById('menu').classList.remove('show');
+}
+
+document.addEventListener('click', e => {
+    if(!e.target.closest('#settingsBtn') && !e.target.closest('#menu')) {
+        document.getElementById('menu').classList.remove('show');
+    }
+});
+
+</script>
 </body>
 </html>
