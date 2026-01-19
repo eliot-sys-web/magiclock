@@ -33,15 +33,13 @@ body {
     background: #000;
     width: 100vw;
     height: 100vh;
-    body {
-      margin: 0;
-      padding: 0;
-      /* Padding dynamique pour éviter les chevauchements */
-      padding-top: env(safe-area-inset-top);
-      padding-bottom: env(safe-area-inset-bottom);
-      min-height: 100vh; /* Assure que le body prend toute la hauteur */
-      box-sizing: border-box; /* Inclut les paddings dans la hauteur */
-    }
+    margin: 0;
+    padding: 0;
+    /* Padding dynamique pour éviter les chevauchements */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    min-height: 100vh; /* Assure que le body prend toute la hauteur */
+    box-sizing: border-box; /* Inclut les paddings dans la hauteur */
 }
 
 /* LOCKSCREEN - Screenshot en fond */
@@ -288,7 +286,6 @@ body.debug .touch-zone {
     75% { transform: translateX(calc(-50% + 10px)); }
 }
 
-
 body.adjust-individual .dot {
     cursor: move;
     border: 2px solid orange !important;
@@ -333,7 +330,7 @@ body.adjust-individual #dots-overlay {
     <button id="startBtn">Démarrer</button>
     
     <div class="info">
-        💡 <strong>Astuce :</strong> Les ronds se superposeront à ton screenshot. Utilise les réglages pour ajuster leur position si besoin.
+        💡 <strong>Astuce :</strong> Entrez 5 chiffres, attendez 5 secondes, puis entrez le 6ème chiffre pour déverrouiller.
     </div>
 </div>
 
@@ -371,77 +368,22 @@ body.adjust-individual #dots-overlay {
     <div id="secret"></div>
 </div>
 
+<!-- Settings Button -->
+<button id="settingsBtn" onclick="menu()">⚙️</button>
 
+<!-- Menu -->
+<div id="menu">
+    <div class="menu-opt" onclick="toggleDebug()">🐛 Mode Debug</div>
+    <div class="menu-opt" onclick="adjustDots()">📍 Ajuster groupe</div>
+    <div class="menu-opt" onclick="toggleIndividualAdjust()">🎯 Ajuster individuellement</div>
+    <div class="menu-opt" onclick="location.reload()">🔄 Recommencer</div>
+</div>
 
 <script>
-const CODES = {
-  "200874": "Amy Adams",
-  "300488": "Ana de Armas",
-  "060780": "Eva Green",
-  "300485": "Gal Gadot",
-  "010785": "Léa Seydoux",
-  "290470": "Uma Thurman",
-  "190678": "Zoe Saldana",
-
-  "150490": "Emma Watson",
-  "150459": "Emma Thompson",
-  "061188": "Emma Stone",
-  "121182": "Anne Hathaway",
-  "140569": "Cate Blanchett",
-  "111162": "Demi Moore",
-  "051075": "Kate Winslet",
-  "300763": "Lisa Kudrow",
-
-  "281067": "Julia Roberts",
-  "191162": "Jodie Foster",
-  "270902": "Jenna Ortega",
-  "150776": "Diane Kruger",
-
-  "230283": "Emily Blunt",
-  "260385": "Keira Knightley",
-  "220649": "Meryl Streep",
-  "280968": "Naomi Watts",
-  "220376": "Reese Witherspoon",
-  "051160": "Tilda Swinton",
-
-  "020790": "Margot Robbie",
-  "300975": "Marion Cotillard",
-  "300964": "Monica Bellucci",
-  "260764": "Sandra Bullock",
-  "100358": "Sharon Stone",
-  "171170": "Sophie Marceau",
-  "120997": "Sydney Sweeney",
-  "090876": "Audrey Tautou",
-  "231086": "Emilia Clarke",
-  "200667": "Nicole Kidman",
-  "171178": "Rachel McAdams",
-
-  "300872": "Cameron Diaz",
-  "250870": "Claudia Schiffer",
-  "280481": "Jessica Alba",
-  "090490": "Kristen Stewart",
-  "010626": "Marilyn Monroe",
-  "090681": "Natalie Portman",
-  "010996": "Zendaya",
-  "221184": "Scarlett Johansson",
-
-  "040675": "Angelina Jolie",
-  "110269": "Jennifer Aniston",
-  "280934": "Brigitte Bardot",
-  "280474": "Penelope Cruz",
-  "150890": "Jennifer Lawrence",
-  "240769": "Jennifer Lopez",
-  "031260": "Julianne Moore",
-  "070875": "Charlize Theron",
-  "151191": "Shailene Woodley",
-
-  "160386": "Alexandra Daddario",
-  "150664": "Courteney Cox",
-  "161089": "Elizabeth Olsen",
-  "081049": "Sigourney Weaver"
-};
 let inp = "", first = null, unlock = false;
 let lockBg = null, homeBg = null;
+let lastInputTime = null; // Timestamp du dernier chiffre entré
+const DELAY_THRESHOLD = 5000; // 5 secondes en millisecondes
 
 const setup = document.getElementById('setup');
 const lock = document.getElementById('lockscreen');
@@ -505,25 +447,43 @@ document.querySelectorAll('.touch-zone').forEach(z => {
 
 function handle(d) {
     if(inp.length >= 6) return;
-    inp += d;
-    updateDots();
-    if(navigator.vibrate) navigator.vibrate(10);
     
-    if(inp.length === 6) {
+    const currentTime = Date.now();
+    
+    // Si c'est le 6ème chiffre (après 5 chiffres déjà entrés)
+    if(inp.length === 5) {
+        const delay = currentTime - lastInputTime;
+        
+        inp += d;
+        updateDots();
+        if(navigator.vibrate) navigator.vibrate(10);
+        
         setTimeout(() => {
             if(!first) {
+                // Première tentative : enregistrer le code
                 first = inp;
                 setTimeout(() => reset(), 600);
-            } else if(CODES[inp]) {
-                unlockScreen(CODES[inp]);
             } else {
-                dotsOverlay.classList.add('shake');
-                setTimeout(() => {
-                    dotsOverlay.classList.remove('shake');
-                    reset();
-                }, 400);
+                // Deuxième tentative : vérifier le délai
+                if(delay >= DELAY_THRESHOLD) {
+                    // Délai suffisant : déverrouiller
+                    unlockScreen(first, inp, delay);
+                } else {
+                    // Délai insuffisant : échec
+                    dotsOverlay.style.animation = 'shake 0.4s';
+                    setTimeout(() => {
+                        dotsOverlay.style.animation = '';
+                        reset();
+                    }, 400);
+                }
             }
         }, 300);
+    } else {
+        // Chiffres 1 à 5
+        inp += d;
+        lastInputTime = currentTime;
+        updateDots();
+        if(navigator.vibrate) navigator.vibrate(10);
     }
 }
 
@@ -536,17 +496,20 @@ function updateDots() {
 
 function reset() {
     inp = "";
+    lastInputTime = null;
     updateDots();
 }
 
-function unlockScreen(celeb) {
+function unlockScreen(firstCode, secondCode, delay) {
     unlock = true;
-    document.getElementById('secret').innerHTML = `${celeb}<br>${first}`;
+    const delaySeconds = (delay / 1000).toFixed(1);
+    document.getElementById('secret').innerHTML = `Code 1: ${firstCode}<br>Code 2: ${secondCode}<br>Délai: ${delaySeconds}s`;
     home.style.display = 'block';
     home.classList.add('show');
     lock.style.display = 'none';
     if(navigator.vibrate) navigator.vibrate([50,100,50]);
 }
+
 // Settings
 function menu() {
     document.getElementById('menu').classList.toggle('show');
@@ -688,25 +651,6 @@ function endDrag() {
     }
     draggedElement = null;
 }
-
-function change() {
-    unlock = false;
-    first = null;
-    inp = "";
-    home.classList.remove('show');
-    home.style.display = 'none';
-    lock.style.display = 'none';
-    setup.style.display = 'flex';
-    btn.classList.remove('show');
-    document.getElementById('menu').classList.remove('show');
-}
-
-document.addEventListener('click', e => {
-    if(!e.target.closest('#settingsBtn') && !e.target.closest('#menu')) {
-        document.getElementById('menu').classList.remove('show');
-    }
-});
-
 </script>
 </body>
 </html>
