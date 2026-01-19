@@ -217,11 +217,12 @@ button:active {
 
 <script>
 // ========== VARIABLES GLOBALES ==========
-let inp = "", first = null, unlock = false;
+
+let inp = "";
+let unlock = false;
 let lockBg = null, homeBg = null;
-let fifthDigitTime = null; // ⭐ NOUVEAU : Timestamp du 5ème chiffre
-let lastInputTime = null;  // Timestamp du dernier chiffre
-const DELAY_THRESHOLD = 5000; // ⭐ 5 secondes en millisecondes
+let fifthDigitTime = null;
+const DELAY_THRESHOLD = 5000;
 
 const lock = document.getElementById('lockscreen');
 const home = document.getElementById('homescreen');
@@ -246,76 +247,57 @@ function updateDots() {
 
 function reset() {
     inp = "";
-    fifthDigitTime = null; // ⭐ Réinitialiser le timestamp
-    lastInputTime = null;
+    fifthDigitTime = null;
     updateDots();
 }
 
-// ========== LOGIQUE DE CODE MODIFIÉE ==========
+// ========== LOGIQUE DE CODE ==========
 function handle(d) {
     if(inp.length >= 6) return;
     
     const currentTime = Date.now();
     
-    // Si c'est le 6ème chiffre (après 5 chiffres déjà entrés)
+    inp += d;
+    updateDots();
+    if(navigator.vibrate) navigator.vibrate(10);
+    
+    console.log(`Chiffre ${inp.length}: ${d}`);
+    
     if(inp.length === 5) {
+        fifthDigitTime = currentTime;
+        console.log(`✅ 5ème chiffre ! En attente...`);
+    }
+    
+    if(inp.length === 6) {
         const delay = fifthDigitTime ? (currentTime - fifthDigitTime) : 0;
-        
-        inp += d;
-        updateDots();
-        if(navigator.vibrate) navigator.vibrate(10);
-        
-        console.log(`⏱️ Délai mesuré: ${delay}ms (${(delay/1000).toFixed(1)}s)`); // Debug
+        console.log(`⏱️ Délai: ${(delay/1000).toFixed(1)}s`);
         
         setTimeout(() => {
-            if(!first) {
-                // Première tentative : on enregistre
-                first = inp;
-                console.log(`✅ Premier code enregistré: ${first}`);
-                setTimeout(() => reset(), 600);
+            if(delay >= DELAY_THRESHOLD) {
+                console.log(`🔓 DÉVERROUILLÉ !`);
+                unlockScreen(inp, delay);
             } else {
-                // Deuxième tentative : vérifier le délai
-                if(delay >= DELAY_THRESHOLD) {
-                    // ⭐ Délai suffisant : déverrouiller
-                    console.log(`🔓 Déverrouillage ! Délai: ${(delay/1000).toFixed(1)}s`);
-                    unlockScreen(first, inp, delay);
-                } else {
-                    // ⭐ Délai insuffisant : échec
-                    console.log(`❌ Délai insuffisant: ${(delay/1000).toFixed(1)}s < 5s`);
-                    dotsOverlay.style.animation = 'shake 0.4s';
-                    setTimeout(() => {
-                        dotsOverlay.style.animation = '';
-                        reset();
-                    }, 400);
-                }
+                console.log(`❌ Délai insuffisant`);
+                dotsOverlay.style.animation = 'shake 0.4s';
+                if(navigator.vibrate) navigator.vibrate([50, 50, 50]);
+                setTimeout(() => {
+                    dotsOverlay.style.animation = '';
+                    reset();
+                }, 400);
             }
         }, 300);
-    } else {
-        // Chiffres 1 à 5
-        inp += d;
-        lastInputTime = currentTime;
-        
-        // ⭐ Enregistrer spécifiquement le moment du 5ème chiffre
-        if(inp.length === 5) {
-            fifthDigitTime = currentTime;
-            console.log(`🎯 5ème chiffre entré ! En attente du 6ème...`);
-        }
-        
-        updateDots();
-        if(navigator.vibrate) navigator.vibrate(10);
     }
 }
 
-function unlockScreen(code1, code2, delay) {
+function unlockScreen(code, delay) {
     unlock = true;
     lock.style.display = 'none';
     home.style.display = 'block';
     
     codeDisplay.innerHTML = `
         🔓 <strong>Déverrouillé !</strong><br><br>
-        Premier code : <strong>${code1}</strong><br>
-        Second code : <strong>${code2}</strong><br>
-        Délai : <strong>${(delay/1000).toFixed(1)} secondes</strong>
+        Code : <strong>${code}</strong><br>
+        Délai : <strong>${(delay/1000).toFixed(2)}s</strong>
     `;
     
     document.getElementById('upload-section').style.display = 'none';
@@ -350,7 +332,6 @@ document.getElementById('homeBgInput').addEventListener('change', function(e) {
     }
 });
 
-// Charger les images au démarrage
 window.addEventListener('load', () => {
     const savedLock = localStorage.getItem('lockBg');
     const savedHome = localStorage.getItem('homeBg');
@@ -373,7 +354,7 @@ function toggleAdjustMode() {
     adjustMode = !adjustMode;
     
     if(adjustMode) {
-        alert('Mode ajustement activé ! Placez votre screenshot de clavier en fond, puis cliquez sur les chiffres du clavier pour créer des zones tactiles.');
+        alert('Mode ajustement activé !');
         document.body.classList.add('debug');
     } else {
         document.body.classList.remove('debug');
@@ -388,7 +369,7 @@ lock.addEventListener('click', function(e) {
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
     
-    const digit = prompt('Quel chiffre pour cette zone ? (0-9, ou "del" pour supprimer)');
+    const digit = prompt('Quel chiffre ? (0-9, ou "del")');
     
     if(digit === 'del') {
         const zones = document.querySelectorAll('.touch-zone');
@@ -423,95 +404,6 @@ function createTouchZone(digit, x, y) {
     lock.appendChild(zone);
 }
 
-// ========== DRAG & DROP DES POINTS ==========
-function toggleAdjustMode() {
-    if(!individualAdjustMode) {
-        individualAdjustMode = true;
-        alert('🎯 Mode ajustement individuel activé ! Glissez chaque point blanc individuellement.');
-        
-        dotsOverlay.style.cursor = 'move';
-        dotsOverlay.addEventListener('mousedown', startDotDrag);
-        dotsOverlay.addEventListener('touchstart', startDotDrag);
-        
-        dots.forEach(dot => {
-            dot.style.position = 'relative';
-            dot.style.cursor = 'move';
-            dot.addEventListener('mousedown', startDotDrag);
-            dot.addEventListener('touchstart', startDotDrag);
-        });
-    } else {
-        individualAdjustMode = false;
-        alert('Mode ajustement désactivé');
-        
-        dotsOverlay.style.cursor = '';
-        dotsOverlay.removeEventListener('mousedown', startDotDrag);
-        dotsOverlay.removeEventListener('touchstart', startDotDrag);
-        
-        dots.forEach(dot => {
-            dot.style.cursor = '';
-            dot.removeEventListener('mousedown', startDotDrag);
-            dot.removeEventListener('touchstart', startDotDrag);
-        });
-    }
-}
-
-function startDotDrag(e) {
-    if(!individualAdjustMode) return;
-    
-    draggedElement = e.target;
-    draggedElement.classList.add('dragging');
-    
-    const isTouch = e.type === 'touchstart';
-    const clientX = isTouch ? e.touches[0].clientX : e.clientX;
-    const clientY = isTouch ? e.touches[0].clientY : e.clientY;
-    
-    const rect = draggedElement.getBoundingClientRect();
-    draggedElement._offsetX = clientX - rect.left - rect.width/2;
-    draggedElement._offsetY = clientY - rect.top - rect.height/2;
-    
-    e.preventDefault();
-    e.stopPropagation();
-}
-
-document.addEventListener('mousemove', doDrag);
-document.addEventListener('touchmove', doDrag);
-
-function doDrag(e) {
-    if(!draggedElement) return;
-    
-    const isTouch = e.type === 'touchmove';
-    const clientX = isTouch ? e.touches[0].clientX : e.clientX;
-    const clientY = isTouch ? e.touches[0].clientY : e.clientY;
-    
-    if(draggedElement === dotsOverlay) {
-        const lockRect = lock.getBoundingClientRect();
-        const newLeft = ((clientX - lockRect.left - dotsOverlay._offsetX) / lockRect.width) * 100;
-        const newTop = ((clientY - lockRect.top - dotsOverlay._offsetY) / lockRect.height) * 100;
-        
-        dotsOverlay.style.left = newLeft + '%';
-        dotsOverlay.style.top = newTop + '%';
-        dotsOverlay.style.transform = 'none';
-    } else {
-        const overlayRect = dotsOverlay.getBoundingClientRect();
-        const newLeft = clientX - overlayRect.left - draggedElement._offsetX - draggedElement.offsetWidth/2;
-        const newTop = clientY - overlayRect.top - draggedElement._offsetY - draggedElement.offsetHeight/2;
-        
-        draggedElement.style.left = newLeft + 'px';
-        draggedElement.style.top = newTop + 'px';
-    }
-    
-    e.preventDefault();
-}
-
-document.addEventListener('mouseup', endDrag);
-document.addEventListener('touchend', endDrag);
-
-function endDrag() {
-    if(draggedElement && draggedElement !== dotsOverlay) {
-        draggedElement.classList.remove('dragging');
-    }
-    draggedElement = null;
-}
 </script>
 </body>
 </html>
