@@ -454,7 +454,8 @@ const CODES = {
 };
 let inp = "", first = null, unlock = false;
 let lockBg = null, homeBg = null;
-
+let inp = [];
+let timeAt5thDigit = null;
 const setup = document.getElementById('setup');
 const lock = document.getElementById('lockscreen');
 const home = document.getElementById('homescreen');
@@ -515,28 +516,22 @@ document.querySelectorAll('.touch-zone').forEach(z => {
     z.onclick = () => { if(!unlock) handle(z.dataset.k); };
 });
 
-function handle(d) {
-    if(inp.length >= 6) return;
-    inp += d;
-    updateDots();
-    if(navigator.vibrate) navigator.vibrate(10);
-    
-    if(inp.length === 6) {
-        setTimeout(() => {
-            if(!first) {
-                first = inp;
-                setTimeout(() => reset(), 600);
-            } else if(CODES[inp]) {
-                unlockScreen(CODES[inp]);
-            } else {
-                dotsOverlay.classList.add('shake');
-                setTimeout(() => {
-                    dotsOverlay.classList.remove('shake');
-                    reset();
-                }, 400);
-            }
-        }, 300);
+function onDigitPress(digit) {
+    if (inp.length >= 6) return;
+
+    inp.push(digit);
+
+    // ⏱️ moment précis du 5ᵉ chiffre
+    if (inp.length === 5) {
+        timeAt5thDigit = Date.now();
     }
+
+    // ✅ tentative de déverrouillage au 6ᵉ
+    if (inp.length === 6) {
+        checkUnlockCondition();
+    }
+
+    updateDots();
 }
 
 function updateDots() {
@@ -564,6 +559,37 @@ function unlockScreen(celeb) {
     lock.style.display = 'none';
     if(navigator.vibrate) navigator.vibrate([50,100,50]);
 }
+
+function checkUnlockCondition() {
+    if (!timeAt5thDigit) return;
+
+    const now = Date.now();
+    const delay = now - timeAt5thDigit;
+
+    if (delay > 5000) {
+        unlockPhone();
+    } else {
+        denyUnlock();
+    }
+}
+function unlockPhone() {
+    console.log("✅ Téléphone déverrouillé");
+    navigator.vibrate?.(30);
+
+    // animation / transition ici
+}
+
+function denyUnlock() {
+    console.log("❌ Délai trop court");
+
+    navigator.vibrate?.([10, 40, 10]);
+
+    // reset après échec
+    inp = [];
+    timeAt5thDigit = null;
+    updateDots();
+}
+
 // Settings
 function menu() {
     document.getElementById('menu').classList.toggle('show');
