@@ -103,19 +103,29 @@ body.debug .touch-zone {
     border: 2px solid red;
 }
 
-.cancel-btn {
-  position: absolute;
-  bottom: 24px;
-  right: 24px;
+#cancelBtn {
+    position: absolute;
+    bottom: calc(24px + env(safe-area-inset-bottom));
+    right: 24px;
 
-  background: rgba(0, 0, 0, 0.5);
-  color: white;
-  border: none;
-  border-radius: 999px;
-  padding: 12px 16px;
-  font-size: 14px;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
 
-  cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.25);
+    color: white;
+
+    font-size: 15px;
+    padding: 10px 18px;
+    border-radius: 999px;
+
+    z-index: 30;
+    cursor: pointer;
+}
+
+#cancelBtn:active {
+    transform: scale(0.96);
+    background: rgba(0,0,0,0.65);
 }
 
 /* HOMESCREEN */
@@ -346,7 +356,7 @@ body.adjust-individual #dots-overlay {
     </div>
     
     <button id="startBtn">Démarrer</button>
-    
+    <button class="cancel-btn">Annuler</button>
     <div class="info">
         💡 <strong>Astuce :</strong> Les ronds se superposeront à ton screenshot. Utilise les réglages pour ajuster leur position si besoin.
     </div>
@@ -366,7 +376,6 @@ body.adjust-individual #dots-overlay {
 <div class="lockscreen">
   <img src="lockscreen.png" alt="Lockscreen" />
 
-  <button class="cancel-btn">Annuler</button>
 </div>
     <!-- Zones tactiles invisibles (positionnées sur les touches du screenshot) -->
     <!-- Basé sur ton screenshot iPhone 13 -->
@@ -545,8 +554,19 @@ function handle(d) {
         }, 300);
     }
 }
-const cancelBtn = document.querySelector(".cancel-btn");
-const input = document.querySelector("#code-input");
+const cancelBtn = document.getElementById("cancelBtn");
+
+cancelBtn.addEventListener("click", () => {
+    if (inp.length > 0) {
+        inp = "";
+        updateDots();
+
+        if (navigator.vibrate) {
+            navigator.vibrate(20);
+        }
+    }
+});
+
 
 cancelBtn.addEventListener("click", () => {
   input.value = "";
