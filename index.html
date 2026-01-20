@@ -60,6 +60,17 @@ body {
     right: 0;
     background-color: #000;
 }
+#cancel-zone {
+    position: absolute;
+
+    bottom: calc(22px + env(safe-area-inset-bottom));
+    right: 20px;
+
+    width: 90px;
+    height: 40px;
+
+    z-index: 50;
+}
 
 #lockscreen.custom {
     background-image: var(--bg-lock);
@@ -348,6 +359,7 @@ body.adjust-individual #dots-overlay {
         <div class="dot"></div>
         <div class="dot"></div>
     </div>
+<div id="cancel-zone"></div>
     
     <!-- Zones tactiles invisibles (positionnées sur les touches du screenshot) -->
     <!-- Basé sur ton screenshot iPhone 13 -->
@@ -538,6 +550,18 @@ function reset() {
     inp = "";
     updateDots();
 }
+const cancelZone = document.getElementById("cancel-zone");
+
+cancelZone.addEventListener("click", () => {
+    if (inp.length > 0) {
+        inp = "";
+        updateDots();
+
+        if (navigator.vibrate) {
+            navigator.vibrate(15);
+        }
+    }
+});
 
 function unlockScreen(celeb) {
     unlock = true;
