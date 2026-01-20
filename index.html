@@ -16,10 +16,7 @@
 <link rel="apple-touch-icon" href="/iphone-lock/Lock180.png">
 
 <!-- Manifest PWA pour Android/Chrome -->
-
-<!-- Dans le head, modifiez le manifest.json -->
-<link rel="manifest" href="/iphone-lock/manifest.json?v=1.0.1">
-
+<link rel="manifest" href="/iphone-lock/manifest.json">
 <style>
 * {
     margin: 0;
@@ -104,44 +101,6 @@ body {
 body.debug .touch-zone {
     background: rgba(255,0,0,0.3);
     border: 2px solid red;
-}
-
-/* Bouton Supprimer */
-#deleteBtn {
-    position: absolute;
-    top: 69%; /* Alignement avec la ligne du 0 */
-    left: 14%; /* Position à gauche du 0 */
-    width: 22%;
-    height: 9%;
-    background: rgba(255,255,255,0.1);
-    backdrop-filter: blur(10px);
-    border: none;
-    border-radius: 12px;
-    color: white;
-    font-size: 24px;
-    font-weight: 300;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 20;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-}
-
-#deleteBtn.show {
-    opacity: 1;
-    visibility: visible;
-}
-
-#deleteBtn:hover {
-    background: rgba(255,255,255,0.15);
-}
-
-#deleteBtn:active {
-    background: rgba(255,255,255,0.2);
-    transform: scale(0.98);
 }
 
 /* HOMESCREEN */
@@ -380,9 +339,6 @@ body.adjust-individual #dots-overlay {
 
 <!-- LOCKSCREEN -->
 <div id="lockscreen" style="display:none;">
-    <!-- Bouton Supprimer -->
-    <button id="deleteBtn" title="Supprimer">⌫</button>
-    
     <!-- Ronds dynamiques superposés -->
     <div id="dots-overlay">
         <div class="dot"></div>
@@ -493,7 +449,6 @@ const home = document.getElementById('homescreen');
 const dotsOverlay = document.getElementById('dots-overlay');
 const dots = document.querySelectorAll('.dot');
 const btn = document.getElementById('settingsBtn');
-const deleteBtn = document.getElementById('deleteBtn');
 
 document.getElementById('lockBg').onchange = e => {
     const f = e.target.files[0];
@@ -554,13 +509,6 @@ function handle(d) {
     updateDots();
     if(navigator.vibrate) navigator.vibrate(10);
     
-    // Afficher le bouton Supprimer s'il y a au moins un chiffre
-    if(inp.length > 0) {
-        deleteBtn.classList.add('show');
-    } else {
-        deleteBtn.classList.remove('show');
-    }
-    
     if(inp.length === 6) {
         setTimeout(() => {
             if(!first) {
@@ -589,8 +537,6 @@ function updateDots() {
 function reset() {
     inp = "";
     updateDots();
-    // Cacher le bouton Supprimer
-    deleteBtn.classList.remove('show');
 }
 
 function unlockScreen(celeb) {
@@ -601,52 +547,6 @@ function unlockScreen(celeb) {
     lock.style.display = 'none';
     if(navigator.vibrate) navigator.vibrate([50,100,50]);
 }
-
-// Bouton Supprimer
-deleteBtn.onclick = function() {
-    if(inp.length > 0) {
-        inp = inp.slice(0, -1); // Retire le dernier caractère
-        updateDots();
-        
-        // Cacher le bouton si plus de chiffres
-        if(inp.length === 0) {
-            deleteBtn.classList.remove('show');
-        }
-        
-        if(navigator.vibrate) navigator.vibrate(20);
-    }
-};
-
-// Gestion du clic long (suppression rapide)
-let deleteInterval = null;
-let deleteTimeout = null;
-
-deleteBtn.onmousedown = function() {
-    deleteTimeout = setTimeout(() => {
-        deleteInterval = setInterval(() => {
-            if(inp.length > 0) {
-                inp = inp.slice(0, -1);
-                updateDots();
-                if(navigator.vibrate) navigator.vibrate(10);
-            }
-            if(inp.length === 0) {
-                clearInterval(deleteInterval);
-                deleteBtn.classList.remove('show');
-            }
-        }, 100); // Supprime toutes les 100ms
-    }, 500); // Démarre après 500ms de maintien
-};
-
-deleteBtn.onmouseup = function() {
-    clearTimeout(deleteTimeout);
-    clearInterval(deleteInterval);
-};
-
-deleteBtn.onmouseleave = function() {
-    clearTimeout(deleteTimeout);
-    clearInterval(deleteInterval);
-};
-
 // Settings
 function menu() {
     document.getElementById('menu').classList.toggle('show');
@@ -799,7 +699,6 @@ function change() {
     setup.style.display = 'flex';
     btn.classList.remove('show');
     document.getElementById('menu').classList.remove('show');
-    deleteBtn.classList.remove('show');
 }
 
 document.addEventListener('click', e => {
