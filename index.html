@@ -103,40 +103,42 @@ body.debug .touch-zone {
     border: 2px solid red;
 }
 
-/* Bouton Annuler */
-#cancelBtn {
+/* Bouton Supprimer */
+#deleteBtn {
     position: absolute;
-    top: 15%;
-    left: 50%;
-    transform: translateX(-50%);
+    top: 69%; /* Alignement avec la ligne du 0 */
+    left: 14%; /* Position à gauche du 0 */
+    width: 22%;
+    height: 9%;
     background: rgba(255,255,255,0.1);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.2);
+    border: none;
+    border-radius: 12px;
     color: white;
-    font-size: 15px;
-    padding: 8px 20px;
-    border-radius: 20px;
-    display: none;
+    font-size: 24px;
+    font-weight: 300;
+    display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     z-index: 20;
     opacity: 0;
-    transition: opacity 0.3s ease;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
-#cancelBtn.show {
-    display: flex;
+#deleteBtn.show {
     opacity: 1;
+    visibility: visible;
 }
 
-#cancelBtn:hover {
+#deleteBtn:hover {
     background: rgba(255,255,255,0.15);
 }
 
-#cancelBtn:active {
+#deleteBtn:active {
     background: rgba(255,255,255,0.2);
-    transform: translateX(-50%) scale(0.98);
+    transform: scale(0.98);
 }
 
 /* HOMESCREEN */
@@ -375,8 +377,8 @@ body.adjust-individual #dots-overlay {
 
 <!-- LOCKSCREEN -->
 <div id="lockscreen" style="display:none;">
-    <!-- Bouton Annuler -->
-    <button id="cancelBtn">Annuler</button>
+    <!-- Bouton Supprimer -->
+    <button id="deleteBtn" title="Supprimer">⌫</button>
     
     <!-- Ronds dynamiques superposés -->
     <div id="dots-overlay">
@@ -488,7 +490,7 @@ const home = document.getElementById('homescreen');
 const dotsOverlay = document.getElementById('dots-overlay');
 const dots = document.querySelectorAll('.dot');
 const btn = document.getElementById('settingsBtn');
-const cancelBtn = document.getElementById('cancelBtn');
+const deleteBtn = document.getElementById('deleteBtn');
 
 document.getElementById('lockBg').onchange = e => {
     const f = e.target.files[0];
@@ -549,9 +551,11 @@ function handle(d) {
     updateDots();
     if(navigator.vibrate) navigator.vibrate(10);
     
-    // Afficher le bouton Annuler s'il y a au moins un chiffre
+    // Afficher le bouton Supprimer s'il y a au moins un chiffre
     if(inp.length > 0) {
-        cancelBtn.classList.add('show');
+        deleteBtn.classList.add('show');
+    } else {
+        deleteBtn.classList.remove('show');
     }
     
     if(inp.length === 6) {
@@ -582,8 +586,8 @@ function updateDots() {
 function reset() {
     inp = "";
     updateDots();
-    // Cacher le bouton Annuler
-    cancelBtn.classList.remove('show');
+    // Cacher le bouton Supprimer
+    deleteBtn.classList.remove('show');
 }
 
 function unlockScreen(celeb) {
@@ -595,10 +599,49 @@ function unlockScreen(celeb) {
     if(navigator.vibrate) navigator.vibrate([50,100,50]);
 }
 
-// Bouton Annuler
-cancelBtn.onclick = function() {
-    reset();
-    if(navigator.vibrate) navigator.vibrate(20);
+// Bouton Supprimer
+deleteBtn.onclick = function() {
+    if(inp.length > 0) {
+        inp = inp.slice(0, -1); // Retire le dernier caractère
+        updateDots();
+        
+        // Cacher le bouton si plus de chiffres
+        if(inp.length === 0) {
+            deleteBtn.classList.remove('show');
+        }
+        
+        if(navigator.vibrate) navigator.vibrate(20);
+    }
+};
+
+// Gestion du clic long (suppression rapide)
+let deleteInterval = null;
+let deleteTimeout = null;
+
+deleteBtn.onmousedown = function() {
+    deleteTimeout = setTimeout(() => {
+        deleteInterval = setInterval(() => {
+            if(inp.length > 0) {
+                inp = inp.slice(0, -1);
+                updateDots();
+                if(navigator.vibrate) navigator.vibrate(10);
+            }
+            if(inp.length === 0) {
+                clearInterval(deleteInterval);
+                deleteBtn.classList.remove('show');
+            }
+        }, 100); // Supprime toutes les 100ms
+    }, 500); // Démarre après 500ms de maintien
+};
+
+deleteBtn.onmouseup = function() {
+    clearTimeout(deleteTimeout);
+    clearInterval(deleteInterval);
+};
+
+deleteBtn.onmouseleave = function() {
+    clearTimeout(deleteTimeout);
+    clearInterval(deleteInterval);
 };
 
 // Settings
@@ -753,7 +796,7 @@ function change() {
     setup.style.display = 'flex';
     btn.classList.remove('show');
     document.getElementById('menu').classList.remove('show');
-    cancelBtn.classList.remove('show');
+    deleteBtn.classList.remove('show');
 }
 
 document.addEventListener('click', e => {
