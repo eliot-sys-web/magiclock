@@ -103,6 +103,21 @@ body.debug .touch-zone {
     border: 2px solid red;
 }
 
+.cancel-btn {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 12px 16px;
+  font-size: 14px;
+
+  cursor: pointer;
+}
+
 /* HOMESCREEN */
 #homescreen {
     width: 100vw;
@@ -348,7 +363,11 @@ body.adjust-individual #dots-overlay {
         <div class="dot"></div>
         <div class="dot"></div>
     </div>
-    
+<div class="lockscreen">
+  <img src="lockscreen.png" alt="Lockscreen" />
+
+  <button class="cancel-btn">Annuler</button>
+</div>
     <!-- Zones tactiles invisibles (positionnées sur les touches du screenshot) -->
     <!-- Basé sur ton screenshot iPhone 13 -->
     <div class="touch-zone" data-k="1" style="left:14%; top:36%; width:22%; height:9%;"></div>
@@ -526,7 +545,12 @@ function handle(d) {
         }, 300);
     }
 }
+const cancelBtn = document.querySelector(".cancel-btn");
+const input = document.querySelector("#code-input");
 
+cancelBtn.addEventListener("click", () => {
+  input.value = "";
+});
 function updateDots() {
     dots.forEach((d, i) => {
         if(i < inp.length) d.classList.add('filled');
