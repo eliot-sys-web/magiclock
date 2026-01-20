@@ -1,551 +1,311 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<title>iPhone Lock Screen</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>iPhone Lock</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            user-select: none;
+        }
 
-<!-- Viewport pour mobile -->
+        body {
+            margin: 0;
+            padding: 0;
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            overflow: hidden;
+            background: #000;
+            width: 100vw;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<!-- Mode plein écran iOS -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Lockscreen">
+        #lockscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            transition: opacity 0.5s;
+        }
 
-<!-- Icône iOS écran d'accueil (180x180 px recommandé) -->
-<link rel="apple-touch-icon" href="/iphone-lock/Lock180.png">
+        #lockscreen.unlocked {
+            opacity: 0;
+            pointer-events: none;
+        }
 
-<!-- Manifest PWA pour Android/Chrome -->
-<link rel="manifest" href="/iphone-lock/manifest.json">
-<style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
-}
+        #dots-overlay {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
 
-body {
-    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-    padding : 0;
-    overflow: hidden;
-    background: #000;
-    width: 100vw;
-    height: 100vh;
-    body {
-      margin: 0;
-      padding: 0;
-      /* Padding dynamique pour éviter les chevauchements */
-      padding-top: env(safe-area-inset-top);
-      padding-bottom: env(safe-area-inset-bottom);
-      min-height: 100vh; /* Assure que le body prend toute la hauteur */
-      box-sizing: border-box; /* Inclut les paddings dans la hauteur */
-    }
-}
+        .dot {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
 
-/* LOCKSCREEN - Screenshot en fond */
-#lockscreen {
-    width: 100vw;
-    height: 100vh;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    display: flex;
-    flex-direction: column;
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
-    background-color: #000;
-}
+        .dot.filled {
+            background: #fff;
+            border-color: #fff;
+            transform: scale(1.2);
+        }
 
-#lockscreen.custom {
-    background-image: var(--bg-lock);
-}
-/* Overlay pour les ronds dynamiques */
-#dots-overlay {
-    position: absolute;
-    top: 23%; /* Ajustable selon ton écran */
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 19px;
-    z-index: 10;
-}
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
 
-.dot {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0);
-    background: transparent;
-    transition: all 0.15s ease;
-}
+        #dots-overlay.shake {
+            animation: shake 0.4s;
+        }
 
-.dot.filled {
-    background: white;
-    border-color: white;
-}
+        #numpad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            padding: 20px;
+            max-width: 350px;
+        }
 
-/* Zones tactiles invisibles sur le clavier */ 
-.touch-zone { 
-    position: absolute; 
-    border-radius: 50%; 
-    z-index: 5; 
-    cursor: pointer; 
-}
-/* Pour debug : afficher les zones */
-body.debug .touch-zone {
-    background: rgba(255,0,0,0.3);
-    border: 2px solid red;
-}
+        .num-btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            font-size: 32px;
+            font-weight: 300;
+            cursor: pointer;
+            transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-/* HOMESCREEN */
-#homescreen {
-    width: 100vw;
-    height: 100vh;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 200;
-    background-color: #000;
-}
+        .num-btn:active {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(0.95);
+        }
 
-#homescreen.custom {
-    background-image: var(--bg-home);
-}
+        #homescreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
 
-#homescreen.show {
-    display: block;
-}
+        #homescreen.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
 
-#secret {
-    position: absolute;
-    bottom: 30px;
-    right: 20px;
-    color: rgba(0,0,0,0.50);
-    font-size: 10px;
-    text-align: right;
-    line-height: 1.5;
-}
+        /* Bouton Annuler invisible */
+        #cancelBtn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: transparent;
+            border: none;
+            color: transparent;
+            font-size: 0;
+            padding: 0;
+            cursor: pointer;
+            z-index: 15;
+            -webkit-tap-highlight-color: transparent;
+            width: 80px;
+            height: 44px;
+            display: none;
+        }
 
-/* SETUP */
-#setup {
-    width: 100vw;
-    height: 100vh;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    overflow-y: auto;
-    position: fixed;
-    top: 0;
-    left: 0;
-}
+        #cancelBtn:active {
+            background: rgba(255, 255, 255, 0.05);
+        }
 
-#setup h1 {
-    font-size: 26px;
-    color: white;
-    margin-bottom: 30px;
-    font-weight: 600;
-    text-align: center;
-}
-
-.upload-box {
-    background: rgba(255,255,255,0.12);
-    backdrop-filter: blur(20px);
-    border-radius: 20px;
-    padding: 24px;
-    margin-bottom: 16px;
-    width: 100%;
-    max-width: 340px;
-}
-
-.upload-box h3 {
-    color: white;
-    font-size: 16px;
-    margin-bottom: 12px;
-    font-weight: 600;
-}
-
-.upload-label {
-    display: inline-block;
-    background: white;
-    color: #667eea;
-    padding: 12px 28px;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 15px;
-    cursor: pointer;
-}
-
-.upload-input { display: none; }
-
-.preview {
-    margin-top: 12px;
-    max-width: 100%;
-    max-height: 120px;
-    border-radius: 10px;
-    display: none;
-}
-
-.preview.show { display: block; }
-
-#startBtn {
-    background: white;
-    color: #667eea;
-    border: none;
-    padding: 16px 48px;
-    border-radius: 14px;
-    font-size: 17px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 24px;
-    display: none;
-}
-
-#startBtn.show { display: inline-block; }
-
-.skip { 
-    color: rgba(255,255,255,0.8); 
-    margin-top: 16px; 
-    cursor: pointer; 
-    font-size: 15px;
-    text-decoration: underline;
-}
-
-.info {
-    background: rgba(255,255,255,0.1);
-    border-radius: 12px;
-    padding: 16px;
-    margin-top: 20px;
-    max-width: 340px;
-    color: white;
-    font-size: 13px;
-    line-height: 1.5;
-}
-
-/* SETTINGS */
-#settingsBtn {
-    position: fixed;
-    top: 60px;
-    left: 20px;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: rgba(0,0,0,0.4);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.2);
-    color: white;
-    font-size: 18px;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 300;
-    cursor: pointer;
-}
-
-#settingsBtn.show { display: flex; }
-
-#menu {
-    position: fixed;
-    top: 110px;
-    left: 20px;
-    background: rgba(30,30,30,0.95);
-    backdrop-filter: blur(40px);
-    border-radius: 14px;
-    padding: 8px;
-    display: none;
-    z-index: 301;
-    min-width: 200px;
-    border: 0.5px solid rgba(255,255,255,0.1);
-}
-
-#menu.show { display: block; }
-
-.menu-opt {
-    padding: 12px 14px;
-    color: white;
-    font-size: 15px;
-    cursor: pointer;
-    border-radius: 8px;
-}
-
-.menu-opt:active { background: rgba(255,255,255,0.1); }
-
-@keyframes shake {
-    0%, 100% { transform: translateX(-50%); }
-    25% { transform: translateX(calc(-50% - 10px)); }
-    75% { transform: translateX(calc(-50% + 10px)); }
-}
-
-
-body.adjust-individual .dot {
-    cursor: move;
-    border: 2px solid orange !important;
-    background: rgba(255,165,0,0.3) !important;
-    position: relative;
-    z-index: 100;
-}
-
-body.adjust-individual .dot.dragging {
-    border-color: red !important;
-    background: rgba(255,0,0,0.5) !important;
-    z-index: 101;
-}
-
-body.adjust-individual #dots-overlay {
-    background: rgba(255,255,0,0.1);
-    padding: 10px;
-    border: 2px dashed orange;
-}
-<style>
-* {
-    margin: 0;
-    padding: 0;
-    /* ... vos styles existants ... */
-}
-
-/* ... tous vos autres styles ... */
-
-/* AJOUTEZ ICI À LA FIN */
-/* Bouton Annuler invisible */
-#cancelBtn {
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-    background: transparent;
-    border: none;
-    color: transparent;
-    font-size: 0;
-    padding: 0;
-    cursor: pointer;
-    z-index: 15;
-    -webkit-tap-highlight-color: transparent;
-    width: 80px;
-    height: 44px;
-}
-
-#cancelBtn.hidden {
-    opacity: 0;
-    pointer-events: none;
-}
-
-    
-
-</style>
+        @media (max-width: 400px) {
+            .num-btn {
+                width: 70px;
+                height: 70px;
+                font-size: 28px;
+            }
+            
+            #numpad {
+                gap: 15px;
+            }
+        }
+    </style>
 </head>
 <body>
+    <div id="lockscreen">
+        <div id="dots-overlay">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
 
-<!-- SETUP -->
-<div id="setup">
-    <h1>📱 iPhone Lock Screen<br>Overlay Method</h1>
-    
-    <div class="upload-box">
-        <h3>Screenshot écran verrouillé</h3>
-        <label class="upload-label" for="lockBg">Choisir</label>
-        <input type="file" id="lockBg" class="upload-input" accept="image/*">
-        <img id="prev1" class="preview">
+        <div id="numpad">
+            <button class="num-btn" onclick="handle('1')">1</button>
+            <button class="num-btn" onclick="handle('2')">2</button>
+            <button class="num-btn" onclick="handle('3')">3</button>
+            <button class="num-btn" onclick="handle('4')">4</button>
+            <button class="num-btn" onclick="handle('5')">5</button>
+            <button class="num-btn" onclick="handle('6')">6</button>
+            <button class="num-btn" onclick="handle('7')">7</button>
+            <button class="num-btn" onclick="handle('8')">8</button>
+            <button class="num-btn" onclick="handle('9')">9</button>
+            <button class="num-btn" style="opacity:0;pointer-events:none;"></button>
+            <button class="num-btn" onclick="handle('0')">0</button>
+            <button class="num-btn" onclick="deleteDigit()">⌫</button>
+        </div>
+
+        <button id="cancelBtn" onclick="cancelInput()"></button>
     </div>
-    
-    <div class="upload-box">
-        <h3>Screenshot écran d'accueil</h3>
-        <label class="upload-label" for="homeBg">Choisir</label>
-        <input type="file" id="homeBg" class="upload-input" accept="image/*">
-        <img id="prev2" class="preview">
+
+    <div id="homescreen">
+        🔓 Déverrouillé
     </div>
-    
-    <button id="startBtn">Démarrer</button>
-    
-    <div class="info">
-        💡 <strong>Astuce :</strong> Les ronds se superposeront à ton screenshot. Utilise les réglages pour ajuster leur position si besoin.
-    </div>
-</div>
 
-<!-- LOCKSCREEN -->
-<div id="lockscreen" style="display:none;">
-    <!-- Ronds dynamiques superposés -->
-    <div id="dots-overlay">
-        <div class="dot"></div>
-        <div class="dot"></div>
-        <div class="dot"></div>
-        <div class="dot"></div>
-        <div class="dot"></div>
-        <div class="dot"></div>
-    </div>
-    <button id="cancelBtn" onclick="cancelInput()">Annuler</button>
-   
-    
-    <!-- Zones tactiles invisibles (positionnées sur les touches du screenshot) -->
-    <!-- Basé sur ton screenshot iPhone 13 -->
-    <div class="touch-zone" data-k="1" style="left:14%; top:36%; width:22%; height:9%;"></div>
-    <div class="touch-zone" data-k="2" style="left:39%; top:36%; width:22%; height:9%;"></div>
-    <div class="touch-zone" data-k="3" style="left:64%; top:36%; width:22%; height:9%;"></div>
-    
-    <div class="touch-zone" data-k="4" style="left:14%; top:47%; width:22%; height:9%;"></div>
-    <div class="touch-zone" data-k="5" style="left:39%; top:47%; width:22%; height:9%;"></div>
-    <div class="touch-zone" data-k="6" style="left:64%; top:47%; width:22%; height:9%;"></div>
-    
-    <div class="touch-zone" data-k="7" style="left:14%; top:58%; width:22%; height:9%;"></div>
-    <div class="touch-zone" data-k="8" style="left:39%; top:58%; width:22%; height:9%;"></div>
-    <div class="touch-zone" data-k="9" style="left:64%; top:58%; width:22%; height:9%;"></div>
-    
-    <div class="touch-zone" data-k="0" style="left:39%; top:69%; width:22%; height:9%;"></div>
-</div>
+    <script>
+        let inp = "";
+        let first = null;
+        let unlock = false;
+        const dots = document.querySelectorAll('.dot');
+        const dotsOverlay = document.getElementById('dots-overlay');
+        const lockscreen = document.getElementById('lockscreen');
+        const homescreen = document.getElementById('homescreen');
+        const cancelBtn = document.getElementById('cancelBtn');
 
-<!-- HOMESCREEN -->
-<div id="homescreen">
-    <div id="secret"></div>
-</div>
+        function updateDots() {
+            dots.forEach((dot, i) => {
+                if (i < inp.length) {
+                    dot.classList.add('filled');
+                } else {
+                    dot.classList.remove('filled');
+                }
+            });
+        }
 
+        function handle(d) {
+            if (inp.length >= 6) return;
+            
+            inp += d;
+            updateDots();
+            
+            // Afficher le bouton annuler
+            if (inp.length > 0) {
+                cancelBtn.style.display = 'block';
+            }
+            
+            if (navigator.vibrate) navigator.vibrate(10);
+            
+            if (inp.length === 6) {
+                if (first === null) {
+                    first = inp;
+                    setTimeout(() => {
+                        inp = "";
+                        updateDots();
+                        cancelBtn.style.display = 'none';
+                    }, 300);
+                } else {
+                    if (inp === first) {
+                        unlock = true;
+                        setTimeout(unlockScreen, 300);
+                    } else {
+                        dotsOverlay.classList.add('shake');
+                        setTimeout(() => {
+                            dotsOverlay.classList.remove('shake');
+                            reset();
+                        }, 400);
+                    }
+                }
+            }
+        }
 
+        function deleteDigit() {
+            if (inp.length > 0) {
+                inp = inp.slice(0, -1);
+                updateDots();
+                if (navigator.vibrate) navigator.vibrate(10);
+                
+                if (inp.length === 0) {
+                    cancelBtn.style.display = 'none';
+                }
+            }
+        }
 
-<script>
-const CODES = {
-  "200874": "Amy Adams",
-  "300488": "Ana de Armas",
-  "060780": "Eva Green",
-  "300485": "Gal Gadot",
-  "010785": "Léa Seydoux",
-  "290470": "Uma Thurman",
-  "190678": "Zoe Saldana",
+        function cancelInput() {
+            inp = "";
+            updateDots();
+            cancelBtn.style.display = 'none';
+            if (navigator.vibrate) navigator.vibrate(10);
+        }
 
-  "150490": "Emma Watson",
-  "150459": "Emma Thompson",
-  "061188": "Emma Stone",
-  "121182": "Anne Hathaway",
-  "140569": "Cate Blanchett",
-  "111162": "Demi Moore",
-  "051075": "Kate Winslet",
-  "300763": "Lisa Kudrow",
+        function unlockScreen() {
+            lockscreen.classList.add('unlocked');
+            homescreen.classList.add('visible');
+        }
 
-  "281067": "Julia Roberts",
-  "191162": "Jodie Foster",
-  "270902": "Jenna Ortega",
-  "150776": "Diane Kruger",
+        function reset() {
+            inp = "";
+            first = null;
+            unlock = false;
+            updateDots();
+            cancelBtn.style.display = 'none';
+        }
 
-  "230283": "Emily Blunt",
-  "260385": "Keira Knightley",
-  "220649": "Meryl Streep",
-  "280968": "Naomi Watts",
-  "220376": "Reese Witherspoon",
-  "051160": "Tilda Swinton",
+        function change() {
+            unlock = false;
+            first = null;
+            inp = "";
+            updateDots();
+            lockscreen.classList.remove('unlocked');
+            homescreen.classList.remove('visible');
+            cancelBtn.style.display = 'none';
+        }
 
-  "020790": "Margot Robbie",
-  "300975": "Marion Cotillard",
-  "300964": "Monica Bellucci",
-  "260764": "Sandra Bullock",
-  "100358": "Sharon Stone",
-  "171170": "Sophie Marceau",
-  "120997": "Sydney Sweeney",
-  "090876": "Audrey Tautou",
-  "231086": "Emilia Clarke",
-  "200667": "Nicole Kidman",
-  "171178": "Rachel McAdams",
+        // Initialisation
+        window.addEventListener('load', function() {
+            cancelBtn.style.display = 'none';
+        });
 
-  "300872": "Cameron Diaz",
-  "250870": "Claudia Schiffer",
-  "280481": "Jessica Alba",
-  "090490": "Kristen Stewart",
-  "010626": "Marilyn Monroe",
-  "090681": "Natalie Portman",
-  "010996": "Zendaya",
-  "221184": "Scarlett Johansson",
-
-  "040675": "Angelina Jolie",
-  "110269": "Jennifer Aniston",
-  "280934": "Brigitte Bardot",
-  "280474": "Penelope Cruz",
-  "150890": "Jennifer Lawrence",
-  "240769": "Jennifer Lopez",
-  "031260": "Julianne Moore",
-  "070875": "Charlize Theron",
-  "151191": "Shailene Woodley",
-
-  "160386": "Alexandra Daddario",
-  "150664": "Courteney Cox",
-  "161089": "Elizabeth Olsen",
-  "081049": "Sigourney Weaver"
-};
-let inp = "", first = null, unlock = false;
-let lockBg = null, homeBg = null;
-
-const setup = document.getElementById('setup');
-const lock = document.getElementById('lockscreen');
-const home = document.getElementById('homescreen');
-const dotsOverlay = document.getElementById('dots-overlay');
-const dots = document.querySelectorAll('.dot');
-const btn = document.getElementById('settingsBtn');
-
-document.getElementById('lockBg').onchange = e => {
-    const f = e.target.files[0];
-    if(f) {
-        const r = new FileReader();
-        r.onload = ev => {
-            lockBg = ev.target.result;
-            document.getElementById('prev1').src = lockBg;
-            document.getElementById('prev1').classList.add('show');
-            check();
-        };
-        r.readAsDataURL(f);
-    }
-};
-
-document.getElementById('homeBg').onchange = e => {
-    const f = e.target.files[0];
-    if(f) {
-        const r = new FileReader();
-        r.onload = ev => {
-            homeBg = ev.target.result;
-            document.getElementById('prev2').src = homeBg;
-            document.getElementById('prev2').classList.add('show');
-            check();
-        };
-        r.readAsDataURL(f);
-    }
-};
-
-function check() {
-    if(lockBg && homeBg) document.getElementById('startBtn').classList.add('show');
-}
-
-document.getElementById('startBtn').onclick = start;
-
-function start() {
-    if(lockBg) {
-        lock.style.setProperty('--bg-lock', `url(${lockBg})`);
-        lock.classList.add('custom');
-    }
-    if(homeBg) {
-        home.style.setProperty('--bg-home', `url(${homeBg})`);
-        home.classList.add('custom');
-    }
-    setup.style.display = 'none';
-    lock.style.display = 'flex';
-    btn.classList.add('show');
-}
-
-// Zones tactiles
-document.querySelectorAll('.touch-zone').forEach(z => {
-    z.onclick = () => { if(!unlock) handle(z.dataset.k); };
-});
-
-function handle(d) {
-    if(inp.length >= 6) return;
-    
-    inp += d;
-    updateDots();
-    
-    // AJOUTEZ CES LIGNES
-    const cancelBtn = document.getElementById('cancelBtn');
+        // Support iOS
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
+</body>
+</html>
     if(inp.length > 0) {
         cancelBtn.classList.remove('hidden');
     }
