@@ -553,16 +553,9 @@ function reset() {
 const cancelZone = document.getElementById("cancel-zone");
 
 cancelZone.addEventListener("click", () => {
-    if (inp.length === 0) return;
-
-    inp.pop();          // 🔥 enlève le dernier chiffre
-    updateDots();       // 🔵 met à jour les ronds
-
-    if (navigator.vibrate) {
-        navigator.vibrate(10);
-    }
+    inp = inp.slice(0, -1);
+    updateDots();
 });
-
 function unlockScreen(celeb) {
     unlock = true;
     document.getElementById('secret').innerHTML = `${celeb}<br>${first}`;
