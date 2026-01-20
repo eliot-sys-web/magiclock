@@ -16,7 +16,7 @@
 <link rel="apple-touch-icon" href="/iphone-lock/Lock180.png">
 
 <!-- Manifest PWA pour Android/Chrome -->
-<!--<link rel="manifest" href="/iphone-lock/manifest.json">-->
+<link rel="manifest" href="/iphone-lock/manifest.json">
 <style>
 * {
     margin: 0;
@@ -101,31 +101,6 @@ body {
 body.debug .touch-zone {
     background: rgba(255,0,0,0.3);
     border: 2px solid red;
-}
-
-#cancelBtn {
-    position: absolute;
-    bottom: calc(24px + env(safe-area-inset-bottom));
-    right: 24px;
-
-    background: rgba(0, 0, 0, 0.45);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-
-    border: 1px solid rgba(255,255,255,0.25);
-    color: white;
-
-    font-size: 15px;
-    padding: 10px 18px;
-    border-radius: 999px;
-
-    z-index: 30;
-    cursor: pointer;
-}
-
-#cancelBtn:active {
-    transform: scale(0.96);
-    background: rgba(0,0,0,0.65);
 }
 
 /* HOMESCREEN */
@@ -356,7 +331,7 @@ body.adjust-individual #dots-overlay {
     </div>
     
     <button id="startBtn">Démarrer</button>
-    <button class="cancel-btn">Annuler</button>
+    
     <div class="info">
         💡 <strong>Astuce :</strong> Les ronds se superposeront à ton screenshot. Utilise les réglages pour ajuster leur position si besoin.
     </div>
@@ -373,10 +348,7 @@ body.adjust-individual #dots-overlay {
         <div class="dot"></div>
         <div class="dot"></div>
     </div>
-<div class="lockscreen">
-  <img src="lockscreen.png" alt="Lockscreen" />
-
-</div>
+    
     <!-- Zones tactiles invisibles (positionnées sur les touches du screenshot) -->
     <!-- Basé sur ton screenshot iPhone 13 -->
     <div class="touch-zone" data-k="1" style="left:14%; top:36%; width:22%; height:9%;"></div>
@@ -554,23 +526,7 @@ function handle(d) {
         }, 300);
     }
 }
-const cancelBtn = document.getElementById("cancelBtn");
 
-cancelBtn.addEventListener("click", () => {
-    if (inp.length > 0) {
-        inp = "";
-        updateDots();
-
-        if (navigator.vibrate) {
-            navigator.vibrate(20);
-        }
-    }
-});
-
-
-cancelBtn.addEventListener("click", () => {
-  input.value = "";
-});
 function updateDots() {
     dots.forEach((d, i) => {
         if(i < inp.length) d.classList.add('filled');
