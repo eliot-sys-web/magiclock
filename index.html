@@ -26,7 +26,118 @@
             background: #000;
             width: 100vw;
             min-height: 100vh;
-            box-sizing: border-box;
+        }
+
+        #setup {
+            position: fixed;
+            inset: 0;
+            background: #1a1a2e;
+            color: white;
+            padding: 40px 20px;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        #setup h1 {
+            font-size: 24px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .upload-box {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .upload-box h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            opacity: 0.8;
+        }
+
+        .upload-label {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .upload-label:active {
+            background: #5568d3;
+        }
+
+        .upload-input {
+            display: none;
+        }
+
+        .preview {
+            max-width: 100%;
+            max-height: 300px;
+            margin-top: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .preview[src] {
+            display: block;
+        }
+
+        .celeb-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .celeb-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .celeb-card.selected {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.2);
+        }
+
+        .celeb-card h4 {
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+
+        .celeb-card p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        #startBtn {
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        #startBtn.ready {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        #startBtn:active {
+            background: #5568d3;
         }
 
         #lockscreen {
@@ -35,24 +146,24 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            background-size: cover;
+            background-position: center;
+            display: none;
             z-index: 10;
-            transition: opacity 0.5s;
         }
 
-        #lockscreen.unlocked {
-            opacity: 0;
-            pointer-events: none;
+        #lockscreen.active {
+            display: block;
         }
 
         #dots-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             display: flex;
             gap: 20px;
-            margin-bottom: 40px;
+            z-index: 11;
         }
 
         .dot {
@@ -66,66 +177,29 @@
         .dot.filled {
             background: #fff;
             border-color: #fff;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
             transform: scale(1.2);
         }
 
         @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
+            0%, 100% { transform: translate(-50%, -50%) translateX(0); }
+            25% { transform: translate(-50%, -50%) translateX(-10px); }
+            75% { transform: translate(-50%, -50%) translateX(10px); }
         }
 
         #dots-overlay.shake {
             animation: shake 0.4s;
         }
 
-        #numpad {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            padding: 20px;
-            max-width: 350px;
-        }
-
-        .num-btn {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: #fff;
-            font-size: 32px;
-            font-weight: 300;
+        .touch-zone {
+            position: absolute;
+            z-index: 12;
             cursor: pointer;
-            transition: all 0.2s;
             -webkit-tap-highlight-color: transparent;
         }
 
-        .num-btn:active {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(0.95);
-        }
-
-        #homescreen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 48px;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.5s;
-        }
-
-        #homescreen.visible {
-            opacity: 1;
-            pointer-events: all;
+        .touch-zone:active {
+            background: rgba(255, 255, 255, 0.1);
         }
 
         /* Bouton Annuler invisible */
@@ -146,24 +220,118 @@
             display: none;
         }
 
-        #cancelBtn:active {
-            background: rgba(255, 255, 255, 0.05);
+        #homescreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-size: cover;
+            background-position: center;
+            display: none;
+            z-index: 5;
         }
 
-        @media (max-width: 400px) {
-            .num-btn {
-                width: 70px;
-                height: 70px;
-                font-size: 28px;
-            }
-            
-            #numpad {
-                gap: 15px;
-            }
+        #homescreen.active {
+            display: block;
+        }
+
+        #secret {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: white;
+            font-size: 60px;
+            text-shadow: 0 2px 20px rgba(0,0,0,0.5);
+            z-index: 6;
+            display: none;
+            line-height: 1.2;
+        }
+
+        #secret.show {
+            display: block;
+        }
+
+        #menuBtn {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            z-index: 7;
+            display: none;
+        }
+
+        #menuBtn.show {
+            display: block;
+        }
+
+        #menu {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            z-index: 50;
+        }
+
+        #menu.show {
+            display: flex;
+        }
+
+        #menu button {
+            padding: 15px 40px;
+            border: 2px solid white;
+            background: transparent;
+            color: white;
+            font-size: 18px;
+            border-radius: 12px;
+            cursor: pointer;
+            min-width: 200px;
+        }
+
+        #menu button:active {
+            background: rgba(255, 255, 255, 0.1);
         }
     </style>
 </head>
 <body>
+    <!-- SETUP -->
+    <div id="setup">
+        <h1>📱 iPhone Lock Screen</h1>
+        
+        <div class="upload-box">
+            <h3>Screenshot écran verrouillé</h3>
+            <label class="upload-label" for="lockBg">Choisir</label>
+            <input type="file" id="lockBg" class="upload-input" accept="image/*">
+            <img id="prev1" class="preview">
+        </div>
+        
+        <div class="upload-box">
+            <h3>Screenshot écran d'accueil</h3>
+            <label class="upload-label" for="homeBg">Choisir</label>
+            <input type="file" id="homeBg" class="upload-input" accept="image/*">
+            <img id="prev2" class="preview">
+        </div>
+
+        <h3 style="text-align:center;margin:20px 0;">Choisis ta célébrité :</h3>
+        <div class="celeb-grid" id="celebGrid"></div>
+
+        <button id="startBtn">Commencer</button>
+    </div>
+
+    <!-- LOCKSCREEN -->
     <div id="lockscreen">
         <div id="dots-overlay">
             <div class="dot"></div>
@@ -174,37 +342,126 @@
             <div class="dot"></div>
         </div>
 
-        <div id="numpad">
-            <button class="num-btn" onclick="handle('1')">1</button>
-            <button class="num-btn" onclick="handle('2')">2</button>
-            <button class="num-btn" onclick="handle('3')">3</button>
-            <button class="num-btn" onclick="handle('4')">4</button>
-            <button class="num-btn" onclick="handle('5')">5</button>
-            <button class="num-btn" onclick="handle('6')">6</button>
-            <button class="num-btn" onclick="handle('7')">7</button>
-            <button class="num-btn" onclick="handle('8')">8</button>
-            <button class="num-btn" onclick="handle('9')">9</button>
-            <button class="num-btn" style="opacity:0;pointer-events:none;"></button>
-            <button class="num-btn" onclick="handle('0')">0</button>
-            <button class="num-btn" onclick="deleteDigit()">⌫</button>
-        </div>
+        <!-- Zones tactiles (positions basées sur iPhone 13) -->
+        <div class="touch-zone" data-k="1" style="left:14%; top:36%; width:22%; height:9%;"></div>
+        <div class="touch-zone" data-k="2" style="left:39%; top:36%; width:22%; height:9%;"></div>
+        <div class="touch-zone" data-k="3" style="left:64%; top:36%; width:22%; height:9%;"></div>
+        <div class="touch-zone" data-k="4" style="left:14%; top:46%; width:22%; height:9%;"></div>
+        <div class="touch-zone" data-k="5" style="left:39%; top:46%; width:22%; height:9%;"></div>
+        <div class="touch-zone" data-k="6" style="left:64%; top:46%; width:22%; height:9%;"></div>
+        <div class="touch-zone" data-k="7" style="left:14%; top:56%; width:22%; height:9%;"></div>
+        <div class="touch-zone" data-k="8" style="left:39%; top:56%; width:22%; height:9%;"></div>
+        <div class="touch-zone" data-k="9" style="left:64%; top:56%; width:22%; height:9%;"></div>
+        <div class="touch-zone" data-k="0" style="left:39%; top:66%; width:22%; height:9%;"></div>
+        <div class="touch-zone" data-k="del" style="left:64%; top:66%; width:22%; height:9%;"></div>
 
         <button id="cancelBtn" onclick="cancelInput()"></button>
     </div>
 
-    <div id="homescreen">
-        🔓 Déverrouillé
+    <!-- HOMESCREEN -->
+    <div id="homescreen"></div>
+    <div id="secret"></div>
+    <button id="menuBtn" onclick="menu()">Menu</button>
+
+    <!-- MENU -->
+    <div id="menu">
+        <button onclick="change()">🔒 Changer code</button>
+        <button onclick="location.reload()">🔄 Recommencer</button>
+        <button onclick="menu()">❌ Fermer</button>
     </div>
 
     <script>
+        // Liste des célébrités
+        const celebs = [
+            {emoji: "🎤", name: "Beyoncé", code: "123456"},
+            {emoji: "⚽", name: "Cristiano Ronaldo", code: "234567"},
+            {emoji: "🎬", name: "Leonardo DiCaprio", code: "345678"},
+            {emoji: "🎵", name: "Taylor Swift", code: "456789"},
+            {emoji: "🏀", name: "LeBron James", code: "567890"},
+            {emoji: "🎭", name: "Meryl Streep", code: "678901"},
+            {emoji: "🎸", name: "Ed Sheeran", code: "789012"},
+            {emoji: "👑", name: "Rihanna", code: "890123"},
+            {emoji: "⚡", name: "Usain Bolt", code: "901234"},
+            {emoji: "🎪", name: "Lady Gaga", code: "012345"}
+        ];
+
         let inp = "";
         let first = null;
         let unlock = false;
+        let selectedCeleb = null;
+        let lockBgUrl = null;
+        let homeBgUrl = null;
+
         const dots = document.querySelectorAll('.dot');
         const dotsOverlay = document.getElementById('dots-overlay');
         const lockscreen = document.getElementById('lockscreen');
         const homescreen = document.getElementById('homescreen');
+        const secret = document.getElementById('secret');
+        const menuBtn = document.getElementById('menuBtn');
         const cancelBtn = document.getElementById('cancelBtn');
+
+        // Générer les cartes de célébrités
+        const celebGrid = document.getElementById('celebGrid');
+        celebs.forEach(celeb => {
+            const card = document.createElement('div');
+            card.className = 'celeb-card';
+            card.innerHTML = `<h4>${celeb.emoji}</h4><p>${celeb.name}</p>`;
+            card.onclick = () => selectCeleb(celeb, card);
+            celebGrid.appendChild(card);
+        });
+
+        function selectCeleb(celeb, card) {
+            document.querySelectorAll('.celeb-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            selectedCeleb = celeb;
+            checkReady();
+        }
+
+        // Upload images
+        document.getElementById('lockBg').onchange = function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                lockBgUrl = URL.createObjectURL(file);
+                document.getElementById('prev1').src = lockBgUrl;
+                checkReady();
+            }
+        };
+
+        document.getElementById('homeBg').onchange = function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                homeBgUrl = URL.createObjectURL(file);
+                document.getElementById('prev2').src = homeBgUrl;
+                checkReady();
+            }
+        };
+
+        function checkReady() {
+            const btn = document.getElementById('startBtn');
+            if (lockBgUrl && homeBgUrl && selectedCeleb) {
+                btn.classList.add('ready');
+                btn.onclick = startLock;
+            }
+        }
+
+        function startLock() {
+            lockscreen.style.backgroundImage = `url(${lockBgUrl})`;
+            homescreen.style.backgroundImage = `url(${homeBgUrl})`;
+            document.getElementById('setup').style.display = 'none';
+            lockscreen.classList.add('active');
+        }
+
+        // Gestion du clavier
+        document.querySelectorAll('.touch-zone').forEach(zone => {
+            zone.addEventListener('click', function() {
+                const k = this.getAttribute('data-k');
+                if (k === 'del') {
+                    deleteDigit();
+                } else {
+                    handle(k);
+                }
+            });
+        });
 
         function updateDots() {
             dots.forEach((dot, i) => {
@@ -231,6 +488,7 @@
             
             if (inp.length === 6) {
                 if (first === null) {
+                    // Premier code saisi
                     first = inp;
                     setTimeout(() => {
                         inp = "";
@@ -238,10 +496,13 @@
                         cancelBtn.style.display = 'none';
                     }, 300);
                 } else {
+                    // Vérification
                     if (inp === first) {
+                        // Code correct
                         unlock = true;
                         setTimeout(unlockScreen, 300);
                     } else {
+                        // Code incorrect
                         dotsOverlay.classList.add('shake');
                         setTimeout(() => {
                             dotsOverlay.classList.remove('shake');
@@ -272,14 +533,17 @@
         }
 
         function unlockScreen() {
-            lockscreen.classList.add('unlocked');
-            homescreen.classList.add('visible');
+            secret.innerHTML = `${selectedCeleb.emoji}<br>${first}`;
+            secret.classList.add('show');
+            homescreen.classList.add('active');
+            menuBtn.classList.add('show');
+            lockscreen.classList.remove('active');
+            if (navigator.vibrate) navigator.vibrate([50, 100, 50]);
         }
 
         function reset() {
             inp = "";
             first = null;
-            unlock = false;
             updateDots();
             cancelBtn.style.display = 'none';
         }
@@ -289,251 +553,22 @@
             first = null;
             inp = "";
             updateDots();
-            lockscreen.classList.remove('unlocked');
-            homescreen.classList.remove('visible');
+            lockscreen.classList.add('active');
+            homescreen.classList.remove('active');
+            secret.classList.remove('show');
+            menuBtn.classList.remove('show');
             cancelBtn.style.display = 'none';
+            menu();
+        }
+
+        function menu() {
+            document.getElementById('menu').classList.toggle('show');
         }
 
         // Initialisation
         window.addEventListener('load', function() {
             cancelBtn.style.display = 'none';
         });
-
-        // Support iOS
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
-        }
     </script>
-</body>
-</html>
-    if(inp.length > 0) {
-        cancelBtn.classList.remove('hidden');
-    }
-    
-    if(navigator.vibrate) navigator.vibrate(10);
-    
-    if(inp.length === 6) {
-        if(first === null) {
-            first = inp;
-            setTimeout(() => {
-                inp = "";
-                updateDots();
-                cancelBtn.classList.add('hidden'); // AJOUTEZ CETTE LIGNE
-            }, 300);
-        } else {
-            if(inp === first) {
-                unlock = true;
-                setTimeout(unlockScreen, 300);
-            } else {
-                dotsOverlay.classList.add('shake');
-                setTimeout(() => {
-                    dotsOverlay.classList.remove('shake');
-                    reset();
-                    cancelBtn.classList.add('hidden'); // AJOUTEZ CETTE LIGNE
-                }, 400);
-            }
-        }
-    }
-}
-
-function updateDots() {
-    dots.forEach((d, i) => {
-        if(i < inp.length) d.classList.add('filled');
-        else d.classList.remove('filled');
-    });
-}
-
-function reset() {
-    inp = "";
-    updateDots();
-}
-
-function unlockScreen(celeb) {
-    unlock = true;
-    document.getElementById('secret').innerHTML = `${celeb}<br>${first}`;
-    home.style.display = 'block';
-    home.classList.add('show');
-    lock.style.display = 'none';
-    if(navigator.vibrate) navigator.vibrate([50,100,50]);
-}
-// Settings
-function menu() {
-    document.getElementById('menu').classList.toggle('show');
-}
-
-function toggleDebug() {
-    document.body.classList.toggle('debug');
-    document.getElementById('menu').classList.remove('show');
-}
-
-let adjustMode = false;
-let individualAdjustMode = false;
-let draggedElement = null;
-
-function adjustDots() {
-    // Désactiver le mode individuel si actif
-    if(individualAdjustMode) {
-        toggleIndividualAdjust();
-    }
-    
-    adjustMode = !adjustMode;
-    if(adjustMode) {
-        dotsOverlay.style.background = 'rgba(255,255,0,0.2)';
-        dotsOverlay.style.padding = '10px';
-        dotsOverlay.style.border = '2px dashed orange';
-        dotsOverlay.style.cursor = 'move';
-        
-        // Rendre draggable
-        dotsOverlay.onmousedown = startDrag;
-        dotsOverlay.ontouchstart = startDrag;
-    } else {
-        dotsOverlay.style.background = '';
-        dotsOverlay.style.padding = '';
-        dotsOverlay.style.border = '';
-        dotsOverlay.style.cursor = '';
-        dotsOverlay.onmousedown = null;
-        dotsOverlay.ontouchstart = null;
-    }
-    document.getElementById('menu').classList.remove('show');
-}
-
-function startDrag(e) {
-    if(!adjustMode) return;
-    draggedElement = dotsOverlay;
-    const isTouch = e.type === 'touchstart';
-    const clientX = isTouch ? e.touches[0].clientX : e.clientX;
-    const clientY = isTouch ? e.touches[0].clientY : e.clientY;
-    
-    const rect = dotsOverlay.getBoundingClientRect();
-    dotsOverlay._offsetX = clientX - rect.left;
-    dotsOverlay._offsetY = clientY - rect.top;
-    
-    e.preventDefault();
-}
-
-// Nouvelle fonction pour ajuster les cercles individuellement
-function toggleIndividualAdjust() {
-    // Désactiver le mode groupe si actif
-    if(adjustMode) {
-        adjustDots();
-    }
-    
-    individualAdjustMode = !individualAdjustMode;
-    document.body.classList.toggle('adjust-individual');
-    
-    if(individualAdjustMode) {
-        // Activer le drag sur chaque dot
-        dots.forEach(dot => {
-            dot.style.position = 'relative';
-            dot.onmousedown = startDotDrag;
-            dot.ontouchstart = startDotDrag;
-        });
-    } else {
-        // Désactiver
-        dots.forEach(dot => {
-            dot.onmousedown = null;
-            dot.ontouchstart = null;
-        });
-    }
-    document.getElementById('menu').classList.remove('show');
-}
-
-function startDotDrag(e) {
-    if(!individualAdjustMode) return;
-    
-    draggedElement = e.target;
-    draggedElement.classList.add('dragging');
-    
-    const isTouch = e.type === 'touchstart';
-    const clientX = isTouch ? e.touches[0].clientX : e.clientX;
-    const clientY = isTouch ? e.touches[0].clientY : e.clientY;
-    
-    const rect = draggedElement.getBoundingClientRect();
-    draggedElement._offsetX = clientX - rect.left - rect.width/2;
-    draggedElement._offsetY = clientY - rect.top - rect.height/2;
-    
-    e.preventDefault();
-    e.stopPropagation();
-}
-
-document.addEventListener('mousemove', doDrag);
-document.addEventListener('touchmove', doDrag);
-
-function doDrag(e) {
-    if(!draggedElement) return;
-    
-    const isTouch = e.type === 'touchmove';
-    const clientX = isTouch ? e.touches[0].clientX : e.clientX;
-    const clientY = isTouch ? e.touches[0].clientY : e.clientY;
-    
-    if(draggedElement === dotsOverlay) {
-        // Déplacer tout le groupe
-        const lockRect = lock.getBoundingClientRect();
-        const newLeft = ((clientX - lockRect.left - dotsOverlay._offsetX) / lockRect.width) * 100;
-        const newTop = ((clientY - lockRect.top - dotsOverlay._offsetY) / lockRect.height) * 100;
-        
-        dotsOverlay.style.left = newLeft + '%';
-        dotsOverlay.style.top = newTop + '%';
-        dotsOverlay.style.transform = 'none';
-    } else {
-        // Déplacer un cercle individuel
-        const overlayRect = dotsOverlay.getBoundingClientRect();
-        const newLeft = clientX - overlayRect.left - draggedElement._offsetX - draggedElement.offsetWidth/2;
-        const newTop = clientY - overlayRect.top - draggedElement._offsetY - draggedElement.offsetHeight/2;
-        
-        draggedElement.style.left = newLeft + 'px';
-        draggedElement.style.top = newTop + 'px';
-    }
-    
-    e.preventDefault();
-}
-
-document.addEventListener('mouseup', endDrag);
-document.addEventListener('touchend', endDrag);
-
-function endDrag() {
-    if(draggedElement && draggedElement !== dotsOverlay) {
-        draggedElement.classList.remove('dragging');
-    }
-    draggedElement = null;
-}
-
-function change() {
-    unlock = false;
-    first = null;
-    inp = "";
-    home.classList.remove('show');
-    home.style.display = 'none';
-    lock.style.display = 'none';
-    setup.style.display = 'flex';
-    btn.classList.remove('show');
-    document.getElementById('menu').classList.remove('show');
-}
-function change() {
-    unlock = false;
-    first = null;
-    inp = "";
-    // ... reste du code existant ...
-}
-
-// AJOUTEZ ICI
-function cancelInput() {
-    inp = "";
-    updateDots();
-    if(navigator.vibrate) navigator.vibrate(10);
-}
-
-document.addEventListener('click', e => {
-    if(!e.target.closest('#settingsBtn') && !e.target.closest('#menu')) {
-        document.getElementById('menu').classList.remove('show');
-    }
-});
-// AJOUTEZ À LA FIN DU SCRIPT
-document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('cancelBtn').classList.add('hidden');
-});
-
-
-</script>
 </body>
 </html>
