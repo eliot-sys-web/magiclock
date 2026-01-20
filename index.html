@@ -553,13 +553,13 @@ function reset() {
 const cancelZone = document.getElementById("cancel-zone");
 
 cancelZone.addEventListener("click", () => {
-    if (inp.length > 0) {
-        inp = "";
-        updateDots();
+    if (inp.length === 0) return;
 
-        if (navigator.vibrate) {
-            navigator.vibrate(15);
-        }
+    inp.pop();          // 🔥 enlève le dernier chiffre
+    updateDots();       // 🔵 met à jour les ronds
+
+    if (navigator.vibrate) {
+        navigator.vibrate(10);
     }
 });
 
