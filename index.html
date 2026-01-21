@@ -477,16 +477,7 @@ document.getElementById('lockBg').onchange = e => {
 };
 const cancelZone = document.getElementById("cancel-zone");
 
-cancelZone.addEventListener("click", () => {
-    if (inp.length > 0) {
-        inp = "";
-        updateDots();
 
-        if (navigator.vibrate) {
-            navigator.vibrate(15);
-        }
-    }
-});
 cancelZone.addEventListener("click", () => {
     inp = inp.slice(0, -1);
     updateDots();
