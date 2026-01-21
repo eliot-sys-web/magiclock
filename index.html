@@ -16,7 +16,7 @@
 <link rel="apple-touch-icon" href="/iphone-lock/Lock180.png">
 
 <!-- Manifest PWA pour Android/Chrome -->
-<!--<link rel="manifest" href="/iphone-lock/manifest.json">-->
+<link rel="manifest" href="/iphone-lock/manifest.json">
 <style>
 * {
     margin: 0;
@@ -59,17 +59,6 @@ body {
     bottom: 0;
     right: 0;
     background-color: #000;
-}
-#cancel-zone {
-    position: absolute;
-
-    bottom: calc(22px + env(safe-area-inset-bottom));
-    right: 20px;
-
-    width: 90px;
-    height: 40px;
-
-    z-index: 50;
 }
 
 #lockscreen.custom {
@@ -359,7 +348,6 @@ body.adjust-individual #dots-overlay {
         <div class="dot"></div>
         <div class="dot"></div>
     </div>
-<div id="cancel-zone"></div>
     
     <!-- Zones tactiles invisibles (positionnées sur les touches du screenshot) -->
     <!-- Basé sur ton screenshot iPhone 13 -->
@@ -536,6 +524,9 @@ function handle(d) {
                 }, 400);
             }
         }, 300);
+    }
+}
+
 function updateDots() {
     dots.forEach((d, i) => {
         if(i < inp.length) d.classList.add('filled');
@@ -547,12 +538,7 @@ function reset() {
     inp = "";
     updateDots();
 }
-const cancelZone = document.getElementById("cancel-zone");
 
-cancelZone.addEventListener("click", () => {
-    inp = inp.slice(0, -1);
-    updateDots();
-});
 function unlockScreen(celeb) {
     unlock = true;
     document.getElementById('secret').innerHTML = `${celeb}<br>${first}`;
@@ -561,8 +547,6 @@ function unlockScreen(celeb) {
     lock.style.display = 'none';
     if(navigator.vibrate) navigator.vibrate([50,100,50]);
 }
-
-
 // Settings
 function menu() {
     document.getElementById('menu').classList.toggle('show');
