@@ -253,6 +253,18 @@ body.debug .touch-zone {
     z-index: 300;
     cursor: pointer;
 }
+#cancel-zone {
+    position: absolute;
+
+    bottom: calc(22px + env(safe-area-inset-bottom));
+    right: 20px;
+
+    width: 90px;
+    height: 40px;
+
+    z-index: 50;
+}
+
 
 #settingsBtn.show { display: flex; }
 
@@ -348,7 +360,7 @@ body.adjust-individual #dots-overlay {
         <div class="dot"></div>
         <div class="dot"></div>
     </div>
-    
+    <div id="cancel-zone"></div>
     <!-- Zones tactiles invisibles (positionnées sur les touches du screenshot) -->
     <!-- Basé sur ton screenshot iPhone 13 -->
     <div class="touch-zone" data-k="1" style="left:14%; top:36%; width:22%; height:9%;"></div>
@@ -463,6 +475,22 @@ document.getElementById('lockBg').onchange = e => {
         r.readAsDataURL(f);
     }
 };
+const cancelZone = document.getElementById("cancel-zone");
+
+cancelZone.addEventListener("click", () => {
+    if (inp.length > 0) {
+        inp = "";
+        updateDots();
+
+        if (navigator.vibrate) {
+            navigator.vibrate(15);
+        }
+    }
+});
+cancelZone.addEventListener("click", () => {
+    inp = inp.slice(0, -1);
+    updateDots();
+});
 
 document.getElementById('homeBg').onchange = e => {
     const f = e.target.files[0];
