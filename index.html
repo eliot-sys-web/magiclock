@@ -386,6 +386,7 @@ body.adjust-individual #dots-overlay {
 
 
 <script>
+let fifthDigitTime = null;
 const CODES = {
   "200874": "Amy Adams",
   "300488": "Ana de Armas",
@@ -522,29 +523,6 @@ document.querySelectorAll('.touch-zone').forEach(z => {
     z.onclick = () => { if(!unlock) handle(z.dataset.k); };
 });
 
-function handle(d) {
-    if(inp.length >= 6) return;
-    inp += d;
-    updateDots();
-    if(navigator.vibrate) navigator.vibrate(10);
-    
-    if(inp.length === 6) {
-        setTimeout(() => {
-            if(!first) {
-                first = inp;
-                setTimeout(() => reset(), 600);
-            } else if(CODES[inp]) {
-                unlockScreen(CODES[inp]);
-            } else {
-                dotsOverlay.classList.add('shake');
-                setTimeout(() => {
-                    dotsOverlay.classList.remove('shake');
-                    reset();
-                }, 400);
-            }
-        }, 300);
-    }
-}
 
 function updateDots() {
     dots.forEach((d, i) => {
@@ -552,7 +530,29 @@ function updateDots() {
         else d.classList.remove('filled');
     });
 }
+function handle(d) {
+    inp += value;
+updateDots();
 
+/* ⏱️ Enregistrer le moment du 5e chiffre */
+if (inp.length === 5) {
+    fifthDigitTime = Date.now();
+}
+
+/* 🔓 Condition spéciale au 6e chiffre */
+if (inp.length === 6) {
+    const sixthDigitTime = Date.now();
+    const delay = sixthDigitTime - fifthDigitTime;
+
+    if (delay > 5000) {
+        unlockScreen("Delay unlock");
+        return;
+    }
+
+    // ❌ Sinon → comportement normal
+    dotsOverlay.classList.add('shake');
+    reset();
+}
 function reset() {
     inp = "";
     updateDots();
