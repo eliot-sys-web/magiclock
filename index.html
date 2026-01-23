@@ -487,10 +487,6 @@ function handle(d) {
         if (delay > 5000) {
             unlockScreen("Delay unlock");
         } else {
-            // Animation d'erreur
-            dotsOverlay.style.animation = 'shake 0.4s';
-            setTimeout(() => {
-                dotsOverlay.style.animation = '';
                 reset();
             }, 400);
         }
