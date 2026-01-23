@@ -387,72 +387,6 @@ body.adjust-individual #dots-overlay {
 
 <script>
 let fifthDigitTime = null;
-const CODES = {
-  "200874": "Amy Adams",
-  "300488": "Ana de Armas",
-  "060780": "Eva Green",
-  "300485": "Gal Gadot",
-  "010785": "Léa Seydoux",
-  "290470": "Uma Thurman",
-  "190678": "Zoe Saldana",
-
-  "150490": "Emma Watson",
-  "150459": "Emma Thompson",
-  "061188": "Emma Stone",
-  "121182": "Anne Hathaway",
-  "140569": "Cate Blanchett",
-  "111162": "Demi Moore",
-  "051075": "Kate Winslet",
-  "300763": "Lisa Kudrow",
-
-  "281067": "Julia Roberts",
-  "191162": "Jodie Foster",
-  "270902": "Jenna Ortega",
-  "150776": "Diane Kruger",
-
-  "230283": "Emily Blunt",
-  "260385": "Keira Knightley",
-  "220649": "Meryl Streep",
-  "280968": "Naomi Watts",
-  "220376": "Reese Witherspoon",
-  "051160": "Tilda Swinton",
-
-  "020790": "Margot Robbie",
-  "300975": "Marion Cotillard",
-  "300964": "Monica Bellucci",
-  "260764": "Sandra Bullock",
-  "100358": "Sharon Stone",
-  "171170": "Sophie Marceau",
-  "120997": "Sydney Sweeney",
-  "090876": "Audrey Tautou",
-  "231086": "Emilia Clarke",
-  "200667": "Nicole Kidman",
-  "171178": "Rachel McAdams",
-
-  "300872": "Cameron Diaz",
-  "250870": "Claudia Schiffer",
-  "280481": "Jessica Alba",
-  "090490": "Kristen Stewart",
-  "010626": "Marilyn Monroe",
-  "090681": "Natalie Portman",
-  "010996": "Zendaya",
-  "221184": "Scarlett Johansson",
-
-  "040675": "Angelina Jolie",
-  "110269": "Jennifer Aniston",
-  "280934": "Brigitte Bardot",
-  "280474": "Penelope Cruz",
-  "150890": "Jennifer Lawrence",
-  "240769": "Jennifer Lopez",
-  "031260": "Julianne Moore",
-  "070875": "Charlize Theron",
-  "151191": "Shailene Woodley",
-
-  "160386": "Alexandra Daddario",
-  "150664": "Courteney Cox",
-  "161089": "Elizabeth Olsen",
-  "081049": "Sigourney Weaver"
-};
 let inp = "", first = null, unlock = false;
 let lockBg = null, homeBg = null;
 
@@ -540,20 +474,23 @@ function handle(d) {
     if (inp.length >= 6) return;
 
     inp += d;
+    updateDots();
 
     if (inp.length === 6) {
         const delay = Date.now() - fifthDigitTime;
 
         if (delay > 5000) {
             unlockScreen("Delay unlock");
-        } else if (CODES && CODES[inp]) {
-            unlockScreen(CODES[inp]);
         } else {
-            reset();
+            // Animation d'erreur
+            dotsOverlay.style.animation = 'shake 0.4s';
+            setTimeout(() => {
+                dotsOverlay.style.animation = '';
+                reset();
+            }, 400);
         }
     }
 }
-
 function reset() {
     inp = "";
     updateDots();
