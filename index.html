@@ -476,6 +476,11 @@ function handle(d) {
     inp += d;
     updateDots();
 
+    // Sauvegarder le premier code complet
+    if (inp.length === 6 && first === null) {
+        first = inp;
+    }
+
     if (inp.length === 6) {
         const delay = Date.now() - fifthDigitTime;
 
