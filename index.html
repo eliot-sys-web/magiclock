@@ -531,28 +531,29 @@ function updateDots() {
     });
 }
 function handle(d) {
-    inp += value;
-updateDots();
+    if (typeof inp !== 'string') return;
 
-/* ⏱️ Enregistrer le moment du 5e chiffre */
-if (inp.length === 5) {
-    fifthDigitTime = Date.now();
-}
-
-/* 🔓 Condition spéciale au 6e chiffre */
-if (inp.length === 6) {
-    const sixthDigitTime = Date.now();
-    const delay = sixthDigitTime - fifthDigitTime;
-
-    if (delay > 5000) {
-        unlockScreen("Delay unlock");
-        return;
+    if (inp.length === 4) {
+        fifthDigitTime = Date.now();
     }
 
-    // ❌ Sinon → comportement normal
-    dotsOverlay.classList.add('shake');
-    reset();
+    if (inp.length >= 6) return;
+
+    inp += d;
+
+    if (inp.length === 6) {
+        const delay = Date.now() - fifthDigitTime;
+
+        if (delay > 5000) {
+            unlockScreen("Delay unlock");
+        } else if (CODES && CODES[inp]) {
+            unlockScreen(CODES[inp]);
+        } else {
+            reset();
+        }
+    }
 }
+
 function reset() {
     inp = "";
     updateDots();
