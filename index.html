@@ -463,8 +463,7 @@ function updateDots() {
         if(i < inp.length) d.classList.add('filled');
         else d.classList.remove('filled');
     });
-}
-function handle(d) {
+}function handle(d) {
     if (typeof inp !== 'string') return;
 
     if (inp.length === 4) {
@@ -487,10 +486,14 @@ function handle(d) {
         if (delay > 5000) {
             unlockScreen("Delay unlock");
         } else {
+            // Attendre 300ms pour voir le 6ème rond avant de réinitialiser
+            setTimeout(() => {
                 reset();
+            }, 300);
         }
     }
 }
+
 function reset() {
     inp = "";
     updateDots();
