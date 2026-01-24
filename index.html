@@ -502,7 +502,7 @@ function reset() {
     updateDots();
 }
 
-function unlockScreen() { // ← Plus de paramètre message
+function unlockScreen() {
     unlock = true;
     
     // Calculer la date d'il y a X jours (X = le code saisi)
@@ -518,9 +518,8 @@ function unlockScreen() { // ← Plus de paramètre message
     
     home.classList.add('show');
     home.style.display = 'block';
-    document.getElementById('secret').innerHTML = formattedDate;
+    document.getElementById('secret').innerHTML = formattedDate + '<br>' + first;
 }
-
 // Settings
 function menu() {
     document.getElementById('menu').classList.toggle('show');
