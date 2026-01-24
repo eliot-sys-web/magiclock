@@ -487,7 +487,7 @@ function handle(d) {
         if (delay > 5000) {
             // Attendre 300ms pour voir le 6ème rond avant de déverrouiller
             setTimeout(() => {
-                unlockScreen("Delay unlock");
+                unlockScreen(); // ← Enlève "Delay unlock"
             }, 300);
         } else {
             // Attendre 300ms pour voir le 6ème rond avant de réinitialiser
@@ -497,20 +497,30 @@ function handle(d) {
         }
     }
 }
-
 function reset() {
     inp = "";
     updateDots();
 }
 
-function unlockScreen(celeb) {
+function unlockScreen() { // ← Plus de paramètre message
     unlock = true;
-    document.getElementById('secret').innerHTML = `${celeb}<br>${first}`;
-    home.style.display = 'block';
+    
+    // Calculer la date d'il y a X jours (X = le code saisi)
+    const daysAgo = parseInt(inp);
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() - daysAgo);
+    
+    // Formater en JJ/MM/AAAA
+    const day = String(targetDate.getDate()).padStart(2, '0');
+    const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+    const year = targetDate.getFullYear();
+    const formattedDate = `${day}/${month}/${year}`;
+    
     home.classList.add('show');
-    lock.style.display = 'none';
-    if(navigator.vibrate) navigator.vibrate([50,100,50]);
+    home.style.display = 'block';
+    document.getElementById('secret').innerHTML = formattedDate;
 }
+
 // Settings
 function menu() {
     document.getElementById('menu').classList.toggle('show');
